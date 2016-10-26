@@ -8,5 +8,6 @@ public class BaseAction : MonoBehaviour {
 	public string actionDescription;
 	public float actionDamage;
 	public int actionEnergyCost;
+	public AudioClip sound;
 
 }

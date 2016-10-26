@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{63747077-FBF5-8E2F-8205-A61947DFE7B6}</ProjectGuid>
+    <ProjectGuid>{E0222445-77FC-6516-AB57-2E06A5CD0F18}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -45,6 +45,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Actions\Action.cs" />
      <Compile Include="Assets\Scripts\Actions\BaseAction.cs" />
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
@@ -53,7 +54,6 @@
      <Compile Include="Assets\Scripts\CharacterStateMachine.cs" />
      <Compile Include="Assets\Scripts\EnemyBar.cs" />
      <Compile Include="Assets\Scripts\EnemyStateMachine.cs" />
-     <Compile Include="Assets\Scripts\HandleTurn.cs" />
  <Reference Include="UnityEngine.Networking">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>

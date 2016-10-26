@@ -2,127 +2,136 @@
 using System.Collections;
 using UnityEngine.UI;
 
+// controls behavior of a character within the battle
 public class CharacterStateMachine : MonoBehaviour {
 
-	private BattleStateMachine BSM;
+	protected BattleStateMachine BSM;	// connection to BattleStateMachine
 	public Character character;
 	public int player;
 
-	public enum TurnState
+	// different states a character can be in
+	public enum characterState
 	{
-		PROCESSING,
-		ADDTOLIST,
-		WAITING,
-		SELECTING,
-		ACTION,
-		DEAD
+		PHASING_IN,		// phase bar filling up, gets a chance to select action when full
+		ADDTOLIST,		// being added actionSelectQueue (in BattleStateMachine)
+		WAITING,		// idle
+		SELECTING,		// selecting an action
+		ACTING,			// carrying out action
+		DEAD			// :(
 	}
 
-	public TurnState curState;
-	private Vector2 startPosition;
-	private bool alive = true;
-	private float curCooldown = 0f;
-	private float maxCooldown = 5f;
-	public Image LifeBar;
-	public Image ProgressBar;
-	public GameObject Selector;
+	public characterState curState;
+	protected Vector2 startPosition;		// where character begins on the battlefield
+	protected bool alive = true;
+	protected float curPhase = 0f;		//
+	protected float maxPhase = 5f;
+	public Image lifeBar;			// visual representation of life
+	public Image phaseBar;			// visual representation of phase
+	public GameObject selector;
 
-	//timeForActionStuff
-	private bool actionStarted;
-	public GameObject target;
-	private float positionOffset = -3f;
-	private float moveSpeed = 5f;
+	//TimeForAction() stuff
+	// variables used when performing an action
+	private bool actionStarted;			// have we already started the action?
+	public GameObject target;			// target of action
+	protected float positionOffset = -3f; // you want to face your target, not land right on of them! (calculate dynamically in the future)
+	private float moveSpeed = 7f;		// how quickly you move around the battlefield (have speed affect this?)
 
+	// when a CharacterStateMachine is created
 	void Start ()
 	{
-		Selector.SetActive (false); // hide Selector
-		curState = TurnState.PROCESSING;
-		startPosition = transform.position;
-		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();
-
+		selector.SetActive (false); 			// hide Selector
+		curState = characterState.PHASING_IN;	// set to PHASING_IN state
+		startPosition = transform.position;		// move to starting location on battlefield
+		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
 	}
 
-	void Update ()
+	// executes on every frame
+	protected virtual void Update ()
 	{
-		Debug.Log (curState);
 		switch (curState)
 		{
-		case(TurnState.PROCESSING):
-			updateProgressBar();
-			break;
+			// phase in until phase is full
+			case(characterState.PHASING_IN):
+				PhaseIn();
+				break;
 
-		case(TurnState.ADDTOLIST):
-			BSM.CharactersToManage.Add (this.gameObject);
-			curState = TurnState.WAITING;
-			break;
+			// tell BSM you need to select and action, then wait
+			case(characterState.ADDTOLIST):
+				BSM.charactersToManage.Add (this.gameObject);
+				curState = characterState.WAITING;
+				break;
 
-		case(TurnState.WAITING):
-			// idle state
-			break;
+			case(characterState.WAITING):
+				// idle state
+				break;
 
-		case(TurnState.SELECTING):
-			// idle (could be used to prevent enemies from attacking while selecting an action)
-			break;
+			case(characterState.SELECTING):
+				// idle (code here could be used to prevent enemies from attacking while selecting an action)
+				break;
 
-		case(TurnState.ACTION):
-			StartCoroutine (TimeForAction ());
-			break;
+			// performing an action
+			case(characterState.ACTING):
+				StartCoroutine (TimeForAction ());
+				break;
 
-		case(TurnState.DEAD):
-			if (!alive) {
-				return;
-			} else
-			{
-				this.gameObject.tag = "DeadCharacter";
-				BSM.Enemies.Remove (this.gameObject);
-				// disable selecter
-				Selector.SetActive(false);
-				// remove future turns
-				for (int i = 0; i < BSM.PerformList.Count; i++)
+			// life = 0, can no longer perform any actions
+			case(characterState.DEAD):
+				if (!alive) {return;}
+				else
 				{
-					if (BSM.PerformList [i].PerformersGameObject == this.gameObject)
-					{
-						BSM.PerformList.Remove(BSM.PerformList[i]);
-					}
-				}
-				// change color
-				SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-				renderer.color = new Color(156f,0f,0f,255f);
-				alive = false;
-				BSM.battleState = BattleStateMachine.PerformAction.LOSE;
-			}
-			break;
-		}
-	}
+					this.gameObject.tag = "DeadCharacter";	// tag as dead
+					BSM.enemies.Remove (this.gameObject);	// BSM no longer recognizes this character
+					selector.SetActive(false);				// disable selecter
 
-	public void updateLife ()
+					// remove any future actions if they are in BSM's queue
+					for (int i = 0; i < BSM.performList.Count; i++)
+					{
+						if (BSM.performList [i].agent == this.gameObject)
+						{
+							BSM.performList.Remove(BSM.performList[i]);
+						}
+					}
+					// change color
+					SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+					renderer.color = new Color(156f,0f,0f,255f);
+					alive = false;
+					BSM.battleState = BattleStateMachine.battleStates.LOSE; // lose!
+				}
+				break;
+			}
+		}
+
+	// used by TakeDamage() to update lifeBar
+	protected void updateLife ()
 	{
 		float lifePercent = character.curLife / character.baseLife;
-		LifeBar.transform.localScale = new Vector2 (Mathf.Clamp (lifePercent, 0, 1), LifeBar.transform.localScale.y);
+		lifeBar.transform.localScale = new Vector2 (Mathf.Clamp (lifePercent, 0, 1), lifeBar.transform.localScale.y);
 	}
 
-	void updateProgressBar ()
+	// phase in based on character speed and deltaTime, change state to ADDTOLIST when phase full
+	protected void PhaseIn ()
 	{
-		curCooldown = curCooldown + (character.curSpeed * Time.deltaTime);
-		float progressBarPercent = curCooldown / maxCooldown;
-		ProgressBar.transform.localScale = new Vector2 (Mathf.Clamp (progressBarPercent, 0, 1), ProgressBar.transform.localScale.y);
-		if (curCooldown >= maxCooldown)
+		curPhase += (character.curSpeed * Time.deltaTime);	// increase phase over time
+		// update phaseBar
+		float progressBarPercent = curPhase / maxPhase;
+		phaseBar.transform.localScale = new Vector2 (Mathf.Clamp (progressBarPercent, 0, 1), phaseBar.transform.localScale.y);
+		// change state if phase is full
+		if (curPhase >= maxPhase)
 		{
-			curState = TurnState.ADDTOLIST;
+			curState = characterState.ADDTOLIST;
 		}
 	}
 
-	void chooseAction ()
+	// bundles the details of a chosen action and sends it to the BSM to be added to the queue
+	protected void chooseAction ()
 	{
-		HandleTurn myAction = new HandleTurn ();
-		myAction.Performer = character.name;
-		myAction.PerformersGameObject = this.gameObject;
-
-		myAction.PerformersTarget = BSM.Enemies [Random.Range (0, BSM.Enemies.Count)];
-		BSM.collectActions(myAction);
+		Action myAction = new Action ();		// create new Action object
+		myAction.agent = this.gameObject;		// set agent
+		BSM.collectActions(myAction);			// send action to BSM
 	}
 
-	private IEnumerator TimeForAction()
+	// coroutine that runs when in the ACTING state
+	protected IEnumerator TimeForAction()
 	{
 		if (actionStarted)
 		{
@@ -130,7 +139,10 @@ public class CharacterStateMachine : MonoBehaviour {
 		}
 		actionStarted = true;
 
-		//animate enemy to move near target
+		//animate agent to move near target
+		// dirty fix that will need to be done a cleaner way later
+		if (this.gameObject.CompareTag("Enemy") && positionOffset < 0) { positionOffset *= -1; }
+
 		Vector2 targetPosition = new Vector2 (target.transform.position.x + positionOffset, target.transform.position.y);
 		while (MoveTowardTarget (targetPosition)){yield return null;}
 
@@ -142,28 +154,37 @@ public class CharacterStateMachine : MonoBehaviour {
 		//return to starting location
 		while (MoveTowardTarget (startPosition)){yield return null;}
 
-		//remove performance from list
-		BSM.PerformList.RemoveAt(0);
-		//reset BSM to WAIT
-		BSM.battleState = BattleStateMachine.PerformAction.WAIT;
+		//remove action from list
+		BSM.performList.RemoveAt(0);
+		//reset BSM to WAIT state
+		BSM.battleState = BattleStateMachine.battleStates.WAIT;
 
 		//end coroutine
 		actionStarted = false;
 
-		//reset this enemy state
-		curCooldown = 0;
-		curState = TurnState.PROCESSING;
+		//reset the character's phase and set their state to PHASING_IN
+		curPhase = 0;
+		curState = characterState.PHASING_IN;
 	}
 
-	private bool MoveTowardTarget(Vector2 target)
+	// returns true if we still have space to go to get to target
+	protected bool MoveTowardTarget(Vector2 target)
 	{
 		return target != (Vector2)(transform.position = Vector2.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime));
 	}
 
-	void DealDamage()
+	// deals damage to target based on character's attack and the action's damage
+	protected void DealDamage()
 	{
-		float calculatedDamage = character.curAttack + BSM.PerformList[0].ChosenAction.actionDamage;
-		target.GetComponent<EnemyStateMachine>().TakeDamage (calculatedDamage);
+		Debug.Log("Dealing Damage...");
+		float calculatedDamage = character.curAttack + BSM.performList[0].chosenAction.actionDamage;
+		Debug.Log ("Taking Damage...");
+		// play a silly sound! =D
+		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
+		audio.clip = BSM.performList [0].chosenAction.sound;
+		audio.Play ();
+		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
+		Debug.Log ("Damage Done!");
 	}
 
 	public void TakeDamage(float rawDamage)
@@ -185,9 +206,9 @@ public class CharacterStateMachine : MonoBehaviour {
 		if (character.curLife <= 0)
 		{
 
-			curState = TurnState.DEAD;
+			curState = characterState.DEAD;
 		}
-	} 
+	}
 
 
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic; // for List object
 
 [System.Serializable]
 public class Character {
@@ -19,6 +19,7 @@ public class Character {
 	public float baseLife;
 	public float curLife;
 
-	public List<BaseAction> Actions = new List<BaseAction>();
+	// list of actions available to character
+	public List<BaseAction> actions = new List<BaseAction>();
 
 }
