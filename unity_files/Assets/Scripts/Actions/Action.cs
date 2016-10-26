@@ -7,7 +7,7 @@ public class Action {
 
 	public string type;
 	public CharacterStateMachine agent;
-	public GameObject target;
+	public CharacterStateMachine target;
 
 	public BaseAction chosenAction;
 }

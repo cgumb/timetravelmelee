@@ -18,8 +18,9 @@ public class BattleStateMachine : MonoBehaviour {
 
 	public battleStates battleState;	// current battleState
 
-	public List<GameObject> characters = new List<GameObject> ();
-	public List<GameObject> enemies= new List<GameObject> ();
+	public CharacterStateMachine[] allCSMs;
+	public List<CharacterStateMachine> characters = new List<CharacterStateMachine> ();
+	public List<CharacterStateMachine> enemies= new List<CharacterStateMachine> ();
 
 	public List<Action> performList = new List<Action> ();
 	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
@@ -52,10 +53,16 @@ public class BattleStateMachine : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
 	{
+		allCSMs = GameObject.FindObjectsOfType<CharacterStateMachine> ();
+		foreach (CharacterStateMachine CSM in allCSMs)
+		{
+			if (CSM.CompareTag("Character")) {characters.Add(CSM);}
+			if (CSM.CompareTag("Enemy")) {enemies.Add(CSM);}	
+		}
 		// BSM
 		battleState = battleStates.WAIT;
-		characters.AddRange (GameObject.FindGameObjectsWithTag ("Character"));
-		enemies.AddRange (GameObject.FindGameObjectsWithTag ("Enemy"));
+		//characters.AddRange (GameObject.FindGameObjectsWithTag ("Character"));
+		//enemies.AddRange (GameObject.FindGameObjectsWithTag ("Enemy"));
 		// GUI
 		playerInput = playerGUI.ACTIVE;
 		actionSelectPanel.SetActive (false);
@@ -69,34 +76,34 @@ public class BattleStateMachine : MonoBehaviour {
 		// battleState tracker
 		switch (battleState)
 		{
-		case(battleStates.WAIT):
-			if (performList.Count > 0)
-			{
-				battleState = battleStates.TAKEACTION;
-			}
-			break;
+			case(battleStates.WAIT):
+				if (performList.Count > 0)
+				{
+					battleState = battleStates.TAKEACTION;
+				}
+				break;
 
-		case(battleStates.TAKEACTION):
-			Action curAction = performList[0];
-			CharacterStateMachine CSM = curAction.agent.GetComponent<CharacterStateMachine>();
-			CSM.target = curAction.target;
-			CSM.curState = CharacterStateMachine.characterState.ACTING;
+			case(battleStates.TAKEACTION):
+				Action curAction = performList[0];
+				CharacterStateMachine CSM = curAction.agent.GetComponent<CharacterStateMachine>();
+				CSM.target = curAction.target;
+				CSM.curState = CharacterStateMachine.characterState.ACTING;
 
-			battleState = battleStates.PERFORMACTION;
-			break;
+				battleState = battleStates.PERFORMACTION;
+				break;
 
-			case(battleStates.PERFORMACTION):
-			break;
+				case(battleStates.PERFORMACTION):
+				break;
 
-		case(battleStates.WIN):
-			HidePanels ();
-			Debug.Log ("You Win!");
-			break;
+			case(battleStates.WIN):
+				EndBattle ();
+				Debug.Log ("You Win!");
+				break;
 
-		case(battleStates.LOSE):
-			HidePanels ();
-			Debug.Log ("Game Over :(");
-			break;
+			case(battleStates.LOSE):
+				EndBattle ();
+				Debug.Log ("Game Over :(");
+				break;
 		}
 
 		// playerGUI state tracker
@@ -135,17 +142,15 @@ public class BattleStateMachine : MonoBehaviour {
 	// creates status bars for all characters
 	void CharacterBars()
 	{
-		foreach (GameObject character in characters)
+		foreach (CharacterStateMachine curCharacter in characters)
 		{
 			GameObject newBar = Instantiate (characterBar) as GameObject;
 			CharacterBar bar = newBar.GetComponent<CharacterBar>();
 
-			CharacterStateMachine curCharacter = character.GetComponent<CharacterStateMachine> ();
-
 			Text barText = newBar.transform.FindChild ("Name").gameObject.GetComponent<Text>();
-			barText.text = curCharacter.character.name;
+			barText.text = curCharacter.character.name;	
 
-			bar.CharacterPrefab = character;
+			bar.CharacterPrefab = curCharacter.gameObject;
 
 			curCharacter.phaseBar = newBar.transform.FindChild("Border/PhaseBar").gameObject.GetComponent<Image>();
 			curCharacter.lifeBar = newBar.transform.FindChild("Border/LifeBar").gameObject.GetComponent<Image>();
@@ -157,17 +162,15 @@ public class BattleStateMachine : MonoBehaviour {
 	// creates status bars for all enemies
 	void EnemyBars()
 	{
-		foreach (GameObject enemy in enemies)
+		foreach (CharacterStateMachine curEnemy in enemies)
 		{
 			GameObject newBar = Instantiate (enemyBar) as GameObject;
 			EnemyBar bar = newBar.GetComponent<EnemyBar>();
 
-			EnemyStateMachine curEnemy = enemy.GetComponent<EnemyStateMachine> ();
-
 			Text barText = newBar.transform.FindChild ("Name").gameObject.GetComponent<Text>();
 			barText.text = curEnemy.character.name;
 
-			bar.EnemyPrefab = enemy;
+			bar.EnemyPrefab = curEnemy.gameObject;
 
 			curEnemy.phaseBar = newBar.transform.FindChild("Border/ProgressBar").gameObject.GetComponent<Image>();
 			curEnemy.lifeBar = newBar.transform.FindChild("Border/LifeBar").gameObject.GetComponent<Image>();
@@ -208,6 +211,7 @@ public class BattleStateMachine : MonoBehaviour {
 		// dirty fix addressed above. To be resolved in the future
 		actionButtons[0].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (0));
 		actionButtons[1].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (1));
+		actionButtons[2].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (2));
 
 	}
 
@@ -231,7 +235,7 @@ public class BattleStateMachine : MonoBehaviour {
 			
 	}
 
-	public void SelectTarget (GameObject target)
+	public void SelectTarget (CharacterStateMachine target)
 	{
 		//this just defaults to the only enemy at the moment :(
 		characterChoice.target = target;
@@ -260,5 +264,17 @@ public class BattleStateMachine : MonoBehaviour {
 	{
 		actionSelectPanel.SetActive (false);
 		enemySelectPanel.SetActive (false);
+	}
+
+	void EndBattle()
+	{
+		foreach ( CharacterStateMachine CSM in allCSMs )
+		{
+			HidePanels ();	// hide player input panels
+			CSM.curState = CharacterStateMachine.characterState.WAITING;	// make all idle
+			performList.Clear();			// no future actions
+			charactersToManage.Clear ();	// no future selections
+
+		}
 	}
 }

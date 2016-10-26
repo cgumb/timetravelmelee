@@ -31,10 +31,10 @@ public class CharacterStateMachine : MonoBehaviour {
 
 	//TimeForAction() stuff
 	// variables used when performing an action
-	private bool actionStarted;			// have we already started the action?
-	public GameObject target;			// target of action
-	protected float positionOffset = -3f; // you want to face your target, not land right on of them! (calculate dynamically in the future)
-	private float moveSpeed = 7f;		// how quickly you move around the battlefield (have speed affect this?)
+	private bool actionStarted;				// have we already started the action?
+	public CharacterStateMachine target;	// target of action
+	protected float positionOffset = -3f; 	// you want to face your target, not land right on of them! (calculate dynamically in the future)
+	private float moveSpeed = 7f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	// when a CharacterStateMachine is created
 	void Start ()
@@ -81,7 +81,7 @@ public class CharacterStateMachine : MonoBehaviour {
 				else
 				{
 					this.gameObject.tag = "DeadCharacter";	// tag as dead
-					BSM.enemies.Remove (this.gameObject);	// BSM no longer recognizes this character
+					BSM.enemies.Remove (this);	// BSM no longer recognizes this character
 					selector.SetActive(false);				// disable selecter
 
 					// remove any future actions if they are in BSM's queue
@@ -148,7 +148,6 @@ public class CharacterStateMachine : MonoBehaviour {
 		switch (chosenAction.actionName)
 		{
 			case ("Basic Attack"):
-				Debug.Log("Inside Basic Attack....");	
 				//animate agent to move near target
 				// dirty fix that will need to be done a cleaner way later
 				if (this.gameObject.CompareTag ("Enemy") && positionOffset < 0) {positionOffset *= -1;}
@@ -157,7 +156,6 @@ public class CharacterStateMachine : MonoBehaviour {
 				{
 					yield return null;
 				}
-
 				//wait
 				yield return new WaitForSeconds (0.5f);
 				//deal damage
@@ -181,6 +179,24 @@ public class CharacterStateMachine : MonoBehaviour {
 					yield return null;
 				}
 				character.frontRow = !character.frontRow; // toggle frontRow
+				break;
+			case ("Lampoon"):
+				// this effect is permanent, in the future it will add a decaying status effect that can stack
+				float attackToSteal = 2f;
+				if (BSM.performList [0].target.character.curAttack >= 3f)
+				{
+					BSM.performList [0].target.character.curAttack -= attackToSteal;
+				}
+				else // don't put target below 1 attack power
+				{
+					attackToSteal = BSM.performList [0].target.character.curAttack - 1f;	// only add amount stolen
+					BSM.performList [0].target.character.curAttack = 1f;
+					BSM.performList [0].target.character.curAttack -= attackToSteal;
+					attackToSteal = attackToSteal < 0 ? 0 : attackToSteal;				// can't steal a negative amount!
+				}
+				BSM.performList [0].agent.character.curAttack += attackToSteal;
+				Debug.Log ("Mark Twain stole " + attackToSteal + " attack power from " + target.character.name + "!");
+				PlayActionSound();	// play a move sound
 				break;
 		}
 
@@ -234,7 +250,7 @@ public class CharacterStateMachine : MonoBehaviour {
 			curState = characterState.DEAD;
 		}
 	}
-
+		
 	public void PlayActionSound()
 	{
 		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();

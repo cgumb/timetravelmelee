@@ -1,12 +1,17 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/CharacterStateMachine.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/EnemyStateMachine.cs">
     <Files>
-      <File FileName="Assets/Scripts/Character.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/BattleStateMachine.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/CharacterStateMachine.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/EnemyStateMachine.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/Action.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/EnemyStateMachine.cs" Line="46" Column="12" />
+      <File FileName="Assets/Scripts/CharacterStateMachine.cs" Line="46" Column="24" />
+      <File FileName="Assets/Scripts/Character.cs" Line="24" Column="23" />
+      <File FileName="Assets/Scripts/BattleStateMachine.cs" Line="199" Column="78" />
+      <File FileName="Assets/Scripts/Actions/BasicAttack.cs" Line="17" Column="16" />
+      <File FileName="Assets/Scripts/Actions/Action.cs" Line="7" Column="2" />
+      <File FileName="Assets/Scripts/Actions/BaseAction.cs" Line="15" Column="11" />
+      <File FileName="Assets/Scripts/Actions/Move.cs" Line="19" Column="3" />
+      <File FileName="Assets/Scripts/Actions/Lampoon.cs" Line="15" Column="37" />
+      <File FileName="Assets/Scripts/EnemyBar.cs" Line="11" Column="44" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

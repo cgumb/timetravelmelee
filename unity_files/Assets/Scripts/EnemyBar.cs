@@ -10,6 +10,7 @@ public class EnemyBar : MonoBehaviour {
 		// This is currently hardwired to select washington
 		// EnemyPrefab is null even though it was set in the inspector
 		// I'll have to sort this out later :/
-		GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ().SelectTarget (GameObject.Find ("washington"));
+		CharacterStateMachine target = GameObject.Find ("washington").GetComponent<CharacterStateMachine>();
+		GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ().SelectTarget (target);
 	}
 }

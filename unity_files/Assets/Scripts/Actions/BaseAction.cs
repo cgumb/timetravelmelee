@@ -11,6 +11,6 @@ public abstract class BaseAction : MonoBehaviour {
 	public bool takesTarget;
 	public AudioClip sound;
 
-	// this s happehould be where we put what happens!
-	public abstract void ActionEffect ();
+	// this should be where we put what happens!
+	abstract public void ActionEffect ();
 }

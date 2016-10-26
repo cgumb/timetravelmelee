@@ -39,7 +39,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 			} else
 			{
 				this.gameObject.tag = "DeadEnemy";
-				BSM.enemies.Remove (this.gameObject);
+				BSM.enemies.Remove (this);
 				// disable selecter
 				enemySelector.SetActive(false);
 				// remove future turns
