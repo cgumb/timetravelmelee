@@ -6,7 +6,7 @@ using System.Collections;
 public class Action {
 
 	public string type;
-	public GameObject agent;
+	public CharacterStateMachine agent;
 	public GameObject target;
 
 	public BaseAction chosenAction;

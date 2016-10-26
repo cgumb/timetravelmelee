@@ -48,6 +48,7 @@
      <Compile Include="Assets\Scripts\Actions\Action.cs" />
      <Compile Include="Assets\Scripts\Actions\BaseAction.cs" />
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
+     <Compile Include="Assets\Scripts\Actions\Move.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />
      <Compile Include="Assets\Scripts\CharacterBar.cs" />

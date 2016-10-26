@@ -19,6 +19,10 @@ public class Character {
 	public float baseLife;
 	public float curLife;
 
+	/* true = front line
+	 * false = back line */
+	public bool frontRow;
+
 	// list of actions available to character
 	public List<BaseAction> actions = new List<BaseAction>();
 

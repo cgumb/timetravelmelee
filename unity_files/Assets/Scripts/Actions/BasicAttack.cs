@@ -11,7 +11,12 @@ public class BasicAttack : BaseAction
 		// we'll have to puzzle this one out
 		actionDamage = 5f;
 		actionEnergyCost = 0;
+		takesTarget = true;			
+	}
 
+	// this is where the actual function used in TimeForAction should go
+	public override void ActionEffect ()
+	{
 
 	}
 }

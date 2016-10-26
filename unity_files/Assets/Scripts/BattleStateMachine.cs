@@ -22,7 +22,7 @@ public class BattleStateMachine : MonoBehaviour {
 	public List<GameObject> enemies= new List<GameObject> ();
 
 	public List<Action> performList = new List<Action> ();
-	public List<GameObject> charactersToManage = new List<GameObject> ();
+	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
 
 
 	// player's interface
@@ -85,8 +85,7 @@ public class BattleStateMachine : MonoBehaviour {
 			battleState = battleStates.PERFORMACTION;
 			break;
 
-		case(battleStates.PERFORMACTION):
-
+			case(battleStates.PERFORMACTION):
 			break;
 
 		case(battleStates.WIN):
@@ -184,33 +183,58 @@ public class BattleStateMachine : MonoBehaviour {
 		EnemyBars ();
 	}
 
-	// populate the action panel of actions available to the character
+	// populate the action panel with actions available to the character
 	void CreateActionButtons ()
 	{
-		GameObject newButton = Instantiate (actionButton) as GameObject;
-		Text actionButtonText = newButton.transform.FindChild ("Text").gameObject.GetComponent<Text>();
-		actionButtonText.text = "Attack";
-		newButton.GetComponent<Button> ().onClick.AddListener (() => Action1 ());
-		newButton.transform.SetParent (actionSelectSpacer, false);
-		actionButtons.Add (newButton);
+		List<BaseAction> actions = charactersToManage[0].character.actions;
+
+		foreach (BaseAction action in actions)
+		{
+			GameObject newButton = Instantiate (actionButton) as GameObject;
+			Text actionButtonText = newButton.transform.FindChild ("Text").gameObject.GetComponent<Text>();
+			actionButtonText.text = action.actionName;
+			Debug.Log ("Making Button for " + action.actionName + " which has an index of " + actions.IndexOf(action));
+			// the following code to add a listen which calls Action with the index of the button's action wasn't working
+			// both buttons ended up calling Move()
+			// this could be a problem with the listener being given a parameter that's a local variable
+			// but some sources on line show this should work...
+			// in the mean time we have a dirty fix outside the foreach loop
+			// ideally we'd want these listeners assigned dynamically here in the loop :(
+			//newButton.GetComponent<Button> ().onClick.AddListener (() => Action (actions.IndexOf(action)));
+			newButton.transform.SetParent (actionSelectSpacer, false);
+			actionButtons.Add (newButton);
+		}
+
+		// dirty fix addressed above. To be resolved in the future
+		actionButtons[0].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (0));
+		actionButtons[1].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (1));
+
 	}
 
-
-	public void Action1 ()
+	// sets characterChoice's agent and chosenAction, hides actionSelectPanel, and displays enemySelectPanel
+	public void Action (int actionIndex)
 	{
-		characterChoice.agent = charactersToManage [0];
-	//	characterChoice.type = "Character";
-		characterChoice.chosenAction = charactersToManage[0].GetComponent<CharacterStateMachine>().character.actions[0];
+		CharacterStateMachine agent = charactersToManage[0];
+		characterChoice.agent = agent;
+		BaseAction action = agent.character.actions [actionIndex];
+		characterChoice.chosenAction = action;
 
-		actionSelectPanel.SetActive (false);
-		enemySelectPanel.SetActive (true);
+		actionSelectPanel.SetActive (false);	// hide actionSelectPanel
+		// if action takes a target, show targetSelectPanel, otherwise end selecting state
+		if (action.takesTarget == true) {
+			enemySelectPanel.SetActive (true);
+		}
+		else 
+		{
+			playerInput = playerGUI.DONE;
+		}
+			
 	}
 
-
-	public void SelectTarget (GameObject Target)
+	public void SelectTarget (GameObject target)
 	{
 		//this just defaults to the only enemy at the moment :(
-		characterChoice.target = Target;
+		characterChoice.target = target;
 		playerInput = playerGUI.DONE;
 	}
 

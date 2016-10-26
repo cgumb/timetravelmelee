@@ -20,7 +20,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 			break;
 
 		case(characterState.ADDTOLIST):
-			chooseAction ();
+			ChooseAction ();
 			curState = characterState.WAITING;
 			break;
 
@@ -62,11 +62,11 @@ public class EnemyStateMachine : CharacterStateMachine {
 
 
 	// different chooseAction for enemies; they select a random action/target
-	new void chooseAction ()
+	new void ChooseAction ()
 	{
 		Action myAction = new Action ();
 		myAction.type = "Enemy";
-		myAction.agent = this.gameObject;
+		myAction.agent = this;
 
 		myAction.target = BSM.characters [Random.Range (0, BSM.characters.Count)];
 

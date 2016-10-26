@@ -88,6 +88,7 @@
 'Assets/Scripts/Actions/Action.cs'
 'Assets/Scripts/Actions/BaseAction.cs'
 'Assets/Scripts/Actions/BasicAttack.cs'
+'Assets/Scripts/Actions/Move.cs'
 'Assets/Scripts/BattleStateMachine.cs'
 'Assets/Scripts/Character.cs'
 'Assets/Scripts/CharacterBar.cs'

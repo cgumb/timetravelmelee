@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class CharacterStateMachine : MonoBehaviour {
 
 	protected BattleStateMachine BSM;	// connection to BattleStateMachine
-	public Character character;
+	public Character character;			// state machine's character (combine these in the future?)
 	public int player;
 
 	// different states a character can be in
@@ -40,6 +40,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	void Start ()
 	{
 		selector.SetActive (false); 			// hide Selector
+		character.frontRow = false;				// assume we're starting in the back row
 		curState = characterState.PHASING_IN;	// set to PHASING_IN state
 		startPosition = transform.position;		// move to starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
@@ -57,7 +58,7 @@ public class CharacterStateMachine : MonoBehaviour {
 
 			// tell BSM you need to select and action, then wait
 			case(characterState.ADDTOLIST):
-				BSM.charactersToManage.Add (this.gameObject);
+				BSM.charactersToManage.Add (this);
 				curState = characterState.WAITING;
 				break;
 
@@ -123,10 +124,10 @@ public class CharacterStateMachine : MonoBehaviour {
 	}
 
 	// bundles the details of a chosen action and sends it to the BSM to be added to the queue
-	protected void chooseAction ()
+	protected void ChooseAction ()
 	{
 		Action myAction = new Action ();		// create new Action object
-		myAction.agent = this.gameObject;		// set agent
+		myAction.agent = this;					// set agent
 		BSM.collectActions(myAction);			// send action to BSM
 	}
 
@@ -139,20 +140,50 @@ public class CharacterStateMachine : MonoBehaviour {
 		}
 		actionStarted = true;
 
-		//animate agent to move near target
-		// dirty fix that will need to be done a cleaner way later
-		if (this.gameObject.CompareTag("Enemy") && positionOffset < 0) { positionOffset *= -1; }
+		BaseAction chosenAction = BSM.performList [0].chosenAction;
 
-		Vector2 targetPosition = new Vector2 (target.transform.position.x + positionOffset, target.transform.position.y);
-		while (MoveTowardTarget (targetPosition)){yield return null;}
+		// we will want these action functions to be the ActionEffect() method within each action
+		// right now this poses a problem as many of the variables they quirere are not accessible within each action object
+		// we'll think of something! :^)
+		switch (chosenAction.actionName)
+		{
+			case ("Basic Attack"):
+				Debug.Log("Inside Basic Attack....");	
+				//animate agent to move near target
+				// dirty fix that will need to be done a cleaner way later
+				if (this.gameObject.CompareTag ("Enemy") && positionOffset < 0) {positionOffset *= -1;}
+				Vector2 targetPosition = new Vector2 (target.transform.position.x + positionOffset, target.transform.position.y);
+				while (MoveTowardTarget (targetPosition))
+				{
+					yield return null;
+				}
 
-		//wait
-		yield return new WaitForSeconds(0.5f);
-		//deal damage
-		DealDamage();
+				//wait
+				yield return new WaitForSeconds (0.5f);
+				//deal damage
+				PlayActionSound();	// play a silly sound! =D
+				DealDamage ();
 
-		//return to starting location
-		while (MoveTowardTarget (startPosition)){yield return null;}
+				//return to starting location
+				while (MoveTowardTarget (startPosition))
+				{
+					yield return null;
+				}
+				break;
+			case ("Move"):
+				float toMove = 2f; // distance to move (i.e., distance between front and back rows)
+				int direction = character.frontRow ? -1 : 1;	// negative means move left on x-axis, postive right 
+				if (this.gameObject.CompareTag ("Enemy")) {direction *= -1;} // direction is reversed for enemies
+				startPosition = new Vector2 (transform.position.x + direction * toMove, transform.position.y);
+				PlayActionSound();	// play a move sound
+				while (MoveTowardTarget (startPosition))
+				{
+					yield return null;
+				}
+				character.frontRow = !character.frontRow; // toggle frontRow
+				break;
+		}
+
 
 		//remove action from list
 		BSM.performList.RemoveAt(0);
@@ -174,17 +205,11 @@ public class CharacterStateMachine : MonoBehaviour {
 	}
 
 	// deals damage to target based on character's attack and the action's damage
+	// should really be part of a damaing action's ActionEffect()
 	protected void DealDamage()
 	{
-		Debug.Log("Dealing Damage...");
 		float calculatedDamage = character.curAttack + BSM.performList[0].chosenAction.actionDamage;
-		Debug.Log ("Taking Damage...");
-		// play a silly sound! =D
-		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
-		audio.clip = BSM.performList [0].chosenAction.sound;
-		audio.Play ();
 		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
-		Debug.Log ("Damage Done!");
 	}
 
 	public void TakeDamage(float rawDamage)
@@ -210,5 +235,10 @@ public class CharacterStateMachine : MonoBehaviour {
 		}
 	}
 
-
+	public void PlayActionSound()
+	{
+		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
+		audio.clip = BSM.performList [0].chosenAction.sound;
+		audio.Play ();
+	}
 }
