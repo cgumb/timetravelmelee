@@ -292,7 +292,10 @@ public class CharacterStateMachine : MonoBehaviour {
 		{
 			renderer.color = Color.red;
 			yield return new WaitForSeconds(.1f);
-			renderer.color = new Color(255f, 255f, 255f, 255f); 
+			if (this.IsAlive()) // reseting color if dead causes problems :/
+			{
+				renderer.color = new Color (255f, 255f, 255f, 255f); 
+			}
 			yield return new WaitForSeconds(.1f);
 		}
 	}
