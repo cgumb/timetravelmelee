@@ -14,6 +14,5 @@ public class Lampoon : BaseAction
 	// this effect is permanent, in the future it will add a decaying status effect that can stack
 	override public void ActionEffect ()
 	{
-		
 	}
 }

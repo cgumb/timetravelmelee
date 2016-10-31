@@ -11,6 +11,14 @@ public abstract class BaseAction : MonoBehaviour {
 	public bool takesTarget;
 	public AudioClip sound;
 
+	protected BattleStateMachine BSM;
+
 	// this should be where we put what happens!
 	abstract public void ActionEffect ();
+
+	// connect to BSM
+	void Awake ()
+	{
+		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();
+	}
 }

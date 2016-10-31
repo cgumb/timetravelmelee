@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 // controls behavior of a character within the battle
@@ -21,7 +22,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	}
 
 	public characterState curState;
-	protected Vector2 startPosition;		// where character begins on the battlefield
+	public Vector2 startPosition;		// where character begins on the battlefield
 	protected bool alive = true;
 	protected float curPhase = 0f;		//
 	protected float maxPhase = 5f;
@@ -31,16 +32,16 @@ public class CharacterStateMachine : MonoBehaviour {
 
 	//TimeForAction() stuff
 	// variables used when performing an action
-	private bool actionStarted;				// have we already started the action?
+	public bool actionStarted;				// have we already started the action?
 	public CharacterStateMachine target;	// target of action
-	protected float positionOffset = -3f; 	// you want to face your target, not land right on of them! (calculate dynamically in the future)
-	private float moveSpeed = 7f;			// how quickly you move around the battlefield (have speed affect this?)
+	public float positionOffset = -1f;		// don't want to land right on our targets!
+	protected float moveSpeed = 8f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	// when a CharacterStateMachine is created
 	void Start ()
 	{
 		selector.SetActive (false); 			// hide Selector
-		character.frontRow = false;				// assume we're starting in the back row
+		//character.frontRow = false;				// assume we're starting in the back row
 		curState = characterState.PHASING_IN;	// set to PHASING_IN state
 		startPosition = transform.position;		// move to starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
@@ -77,26 +78,16 @@ public class CharacterStateMachine : MonoBehaviour {
 
 			// life = 0, can no longer perform any actions
 			case(characterState.DEAD):
-				if (!alive) {return;}
+				if (!alive) {return;}	// only die once :p
 				else
 				{
-					this.gameObject.tag = "DeadCharacter";	// tag as dead
-					BSM.enemies.Remove (this);	// BSM no longer recognizes this character
-					selector.SetActive(false);				// disable selecter
-
-					// remove any future actions if they are in BSM's queue
-					for (int i = 0; i < BSM.performList.Count; i++)
+					die();
+					// lose if no characters left alive
+					if (BSM.characters.TrueForAll( c => c.IsAlive() == false))
 					{
-						if (BSM.performList [i].agent == this.gameObject)
-						{
-							BSM.performList.Remove(BSM.performList[i]);
-						}
+						BSM.battleState = BattleStateMachine.battleStates.LOSE; // lose!
+
 					}
-					// change color
-					SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-					renderer.color = new Color(156f,0f,0f,255f);
-					alive = false;
-					BSM.battleState = BattleStateMachine.battleStates.LOSE; // lose!
 				}
 				break;
 			}
@@ -107,6 +98,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	{
 		float lifePercent = character.curLife / character.baseLife;
 		lifeBar.transform.localScale = new Vector2 (Mathf.Clamp (lifePercent, 0, 1), lifeBar.transform.localScale.y);
+		StartCoroutine(Flasher());
 	}
 
 	// phase in based on character speed and deltaTime, change state to ADDTOLIST when phase full
@@ -141,7 +133,6 @@ public class CharacterStateMachine : MonoBehaviour {
 		actionStarted = true;
 
 		BaseAction chosenAction = BSM.performList [0].chosenAction;
-
 		// we will want these action functions to be the ActionEffect() method within each action
 		// right now this poses a problem as many of the variables they quirere are not accessible within each action object
 		// we'll think of something! :^)
@@ -150,8 +141,9 @@ public class CharacterStateMachine : MonoBehaviour {
 			case ("Basic Attack"):
 				//animate agent to move near target
 				// dirty fix that will need to be done a cleaner way later
-				if (this.gameObject.CompareTag ("Enemy") && positionOffset < 0) {positionOffset *= -1;}
-				Vector2 targetPosition = new Vector2 (target.transform.position.x + positionOffset, target.transform.position.y);
+				int offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
+		//		if (this.gameObject.CompareTag ("Enemy") && positionOffset < 0) {positionOffset *= -1;}
+				Vector2 targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
 				while (MoveTowardTarget (targetPosition))
 				{
 					yield return null;
@@ -195,14 +187,14 @@ public class CharacterStateMachine : MonoBehaviour {
 					attackToSteal = attackToSteal < 0 ? 0 : attackToSteal;				// can't steal a negative amount!
 				}
 				BSM.performList [0].agent.character.curAttack += attackToSteal;
-				Debug.Log ("Mark Twain stole " + attackToSteal + " attack power from " + target.character.name + "!");
+				Debug.Log (this.character.name + " stole " + attackToSteal + " attack power from " + target.character.name + "!");
 				PlayActionSound();	// play a move sound
 				break;
 		}
 
 
-		//remove action from list
-		BSM.performList.RemoveAt(0);
+		//remove action from list (if it exists, a loss/win will have already removed it :/
+		if (BSM.performList.Count > 0) {BSM.performList.RemoveAt(0);}
 		//reset BSM to WAIT state
 		BSM.battleState = BattleStateMachine.battleStates.WAIT;
 
@@ -215,14 +207,14 @@ public class CharacterStateMachine : MonoBehaviour {
 	}
 
 	// returns true if we still have space to go to get to target
-	protected bool MoveTowardTarget(Vector2 target)
+	public bool MoveTowardTarget(Vector2 target)
 	{
 		return target != (Vector2)(transform.position = Vector2.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime));
 	}
 
 	// deals damage to target based on character's attack and the action's damage
 	// should really be part of a damaing action's ActionEffect()
-	protected void DealDamage()
+	public void DealDamage()
 	{
 		float calculatedDamage = character.curAttack + BSM.performList[0].chosenAction.actionDamage;
 		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
@@ -256,5 +248,52 @@ public class CharacterStateMachine : MonoBehaviour {
 		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
 		audio.clip = BSM.performList [0].chosenAction.sound;
 		audio.Play ();
+	}
+
+	public bool IsAlive()
+	{
+		return alive;
+	}
+
+	protected void die()
+	{
+		selector.SetActive(false);				// disable selecter
+		// remove action select panel if this character was selecting an action/target
+		if (BSM.charactersToManage.Count > 0 && BSM.charactersToManage [0] == this)
+		{
+			BSM.ExitSelection();
+		}
+
+		// remove any future actions if they are in BSM's queue
+		BSM.charactersToManage.Remove(this);
+		BSM.performList.RemoveAll(a => a.agent == this);
+
+		// if any future actions were tageting this unit, remove them and let
+		// their agents choose new actions
+		List<Action> incomingActions = BSM.performList.FindAll(a => a.target == this);
+		for (int i = 0; i < incomingActions.Count; i++)
+		{
+			CharacterStateMachine agent = incomingActions[i].agent;
+			BSM.performList.Remove(incomingActions [i]);
+			agent.curState = characterState.ADDTOLIST;
+
+		}
+
+		// change color
+		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+		renderer.color = new Color (156f, 0f, 0f, 255f);
+		alive = false;
+	}
+
+	IEnumerator Flasher() 
+	{
+		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+		for (int i = 0; i < 3; i++)
+		{
+			renderer.color = Color.red;
+			yield return new WaitForSeconds(.1f);
+			renderer.color = new Color(255f, 255f, 255f, 255f); 
+			yield return new WaitForSeconds(.1f);
+		}
 	}
 }

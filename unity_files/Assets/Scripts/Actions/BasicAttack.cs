@@ -15,8 +15,8 @@ public class BasicAttack : BaseAction
 	}
 
 	// this is where the actual function used in TimeForAction should go
-	public override void ActionEffect ()
+	public override void ActionEffect()
 	{
-
+		
 	}
 }

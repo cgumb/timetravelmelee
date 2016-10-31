@@ -50,12 +50,14 @@
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
      <Compile Include="Assets\Scripts\Actions\Lampoon.cs" />
      <Compile Include="Assets\Scripts\Actions\Move.cs" />
+     <Compile Include="Assets\Scripts\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />
      <Compile Include="Assets\Scripts\CharacterBar.cs" />
      <Compile Include="Assets\Scripts\CharacterStateMachine.cs" />
      <Compile Include="Assets\Scripts\EnemyBar.cs" />
      <Compile Include="Assets\Scripts\EnemyStateMachine.cs" />
+     <Compile Include="Assets\Scripts\ITargetable.cs" />
  <Reference Include="UnityEngine.Networking">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>

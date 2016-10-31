@@ -15,6 +15,5 @@ public class Move : BaseAction
 	// this is where the actual function used in TimeForAction should go
 	public override void ActionEffect ()
 	{
-
 	}
 }

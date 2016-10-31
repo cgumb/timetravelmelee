@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class EnemyStateMachine : CharacterStateMachine {
@@ -34,27 +35,19 @@ public class EnemyStateMachine : CharacterStateMachine {
 			break;
 
 		case(characterState.DEAD):
-			if (!alive) {
-				return;
-			} else
+			if (!alive)
 			{
-				this.gameObject.tag = "DeadEnemy";
-				BSM.enemies.Remove (this);
-				// disable selecter
-				enemySelector.SetActive(false);
-				// remove future turns
-				for (int i = 0; i < BSM.performList.Count; i++)
+				return;
+			}
+			else
+			{
+				die();
+				// win if no enemies left alive
+				if (BSM.enemies.TrueForAll( c => c.IsAlive() == false))
 				{
-					if (BSM.performList [i].agent == this.gameObject)
-					{
-						BSM.performList.Remove(BSM.performList[i]);
-					}
+					BSM.battleState = BattleStateMachine.battleStates.WIN; // you win!
+
 				}
-				// change color
-				SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-				renderer.color = new Color(156f,0f,0f,255f);
-				alive = false;
-				BSM.battleState = BattleStateMachine.battleStates.WIN;
 			}
 			break;
 		}
@@ -68,7 +61,12 @@ public class EnemyStateMachine : CharacterStateMachine {
 		myAction.type = "Enemy";
 		myAction.agent = this;
 
-		myAction.target = BSM.characters [Random.Range (0, BSM.characters.Count)];
+		//myAction.target = BSM.characters [Random.Range (0, BSM.characters.Count)];
+		List<CharacterStateMachine> possibleTargets = BSM.characters.FindAll(c => c.IsAlive());
+		if (possibleTargets.Count > 0)
+		{
+			myAction.target = possibleTargets [Random.Range(0, possibleTargets.Count)];
+		}
 
 		// select a random action
 		int rand = Random.Range (0, character.actions.Count);
@@ -76,4 +74,34 @@ public class EnemyStateMachine : CharacterStateMachine {
 
 		BSM.collectActions(myAction);
 	}
+
+	// set this enemy as target if it's alive and the player is in targeting state
+	void OnMouseDown()
+	{
+		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
+		{
+			BSM.SelectTarget(this);
+		}
+	}
+
+	// highlight if currently targetable
+	void OnMouseOver()
+	{
+		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
+		{
+			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+			renderer.color = Color.yellow;
+		}
+	}
+
+	// reset color on mouse exit
+	void OnMouseExit()
+	{
+		if (this.alive == true)
+		{
+			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+			renderer.color = new Color (255f, 255f, 255f, 255f);
+		}
+	}
+
 }
