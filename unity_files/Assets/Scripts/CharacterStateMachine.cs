@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 
 // controls behavior of a character within the battle
+[System.Serializable]
 public class CharacterStateMachine : MonoBehaviour {
 
 	protected BattleStateMachine BSM;	// connection to BattleStateMachine
@@ -28,7 +29,9 @@ public class CharacterStateMachine : MonoBehaviour {
 	protected float maxPhase = 5f;
 	public Image lifeBar;			// visual representation of life
 	public Image phaseBar;			// visual representation of phase
-	public GameObject selector;
+
+	public float backRowBonus = 3f;				// bonus to defense for being in back row
+	public float backRowPenalty = 0.5f;			// % of damage lost for being in back row
 
 	//TimeForAction() stuff
 	// variables used when performing an action
@@ -37,14 +40,32 @@ public class CharacterStateMachine : MonoBehaviour {
 	public float positionOffset = -1f;		// don't want to land right on our targets!
 	protected float moveSpeed = 8f;			// how quickly you move around the battlefield (have speed affect this?)
 
+	//Tooltip Stuff
+	public GUIStyle style = new GUIStyle();
+	public bool showTooltip = false;
+	public Rect rect;
+	public string tooltip;
+	Texture2D texture = new Texture2D(256, 128);
+	protected float mouseOverTime = 0f;				// used to track when mouseover occured
+
 	// when a CharacterStateMachine is created
 	void Start ()
 	{
-		selector.SetActive (false); 			// hide Selector
-		//character.frontRow = false;				// assume we're starting in the back row
 		curState = characterState.PHASING_IN;	// set to PHASING_IN state
 		startPosition = transform.position;		// move to starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
+
+		//Tooltip stuff
+		rect = new Rect (0, 0, 256, 128);
+		for (int y = 0; y < texture.height; ++y)
+		{
+			for (int x = 0; x < texture.width; ++x)
+			{
+				texture.SetPixel(x, y, Color.white);
+			}
+		}
+		texture.Apply();
+		style.normal.background = texture;
 	}
 
 	// executes on every frame
@@ -104,7 +125,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	// phase in based on character speed and deltaTime, change state to ADDTOLIST when phase full
 	protected void PhaseIn ()
 	{
-		curPhase += (character.curSpeed * Time.deltaTime);	// increase phase over time
+		curPhase += (character.curSpeed * Time.deltaTime * BSM.timeScale);	// increase phase over time
 		// update phaseBar
 		float progressBarPercent = curPhase / maxPhase;
 		phaseBar.transform.localScale = new Vector2 (Mathf.Clamp (progressBarPercent, 0, 1), phaseBar.transform.localScale.y);
@@ -217,6 +238,10 @@ public class CharacterStateMachine : MonoBehaviour {
 	public void DealDamage()
 	{
 		float calculatedDamage = character.curAttack + BSM.performList[0].chosenAction.actionDamage;
+
+		// damage penalty for being in back row
+		calculatedDamage = character.frontRow ? calculatedDamage : calculatedDamage * (1 - backRowPenalty);
+
 		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
 	}
 
@@ -224,8 +249,11 @@ public class CharacterStateMachine : MonoBehaviour {
 	{
 		float damage; // actual damage to be done
 
+		// defense bonus if in the back row
+		float totalDefense = character.frontRow? character.curDefense : character.curDefense + backRowBonus;
+
 		// determine damage reduction
-		float damageReduction = character.curDefense / 10;
+		float damageReduction = totalDefense / 10;
 
 		// cap it at 90%
 		damageReduction = (damageReduction > 0.9 ? 0.9f : damageReduction);
@@ -257,7 +285,6 @@ public class CharacterStateMachine : MonoBehaviour {
 
 	protected void die()
 	{
-		selector.SetActive(false);				// disable selecter
 		// remove action select panel if this character was selecting an action/target
 		if (BSM.charactersToManage.Count > 0 && BSM.charactersToManage [0] == this)
 		{
@@ -285,6 +312,7 @@ public class CharacterStateMachine : MonoBehaviour {
 		alive = false;
 	}
 
+	// character flashes red 
 	IEnumerator Flasher() 
 	{
 		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
@@ -298,5 +326,38 @@ public class CharacterStateMachine : MonoBehaviour {
 			}
 			yield return new WaitForSeconds(.1f);
 		}
+	}
+
+	// Tooltip methods
+	protected void OnGUI()
+	{
+		rect.x = Input.mousePosition.x+20;
+		rect.y = Screen.height - Input.mousePosition.y-20;
+		// hardcoded tooltip delay (0.75)
+		// couldn't get this to work with a variable for some reason...
+		if (showTooltip && ((mouseOverTime + 0.75) < Time.time))
+		{
+			GUI.Box(rect, tooltip, style);
+		}
+	}
+	// Update tooltip text
+	protected void OnMouseEnter() {
+		tooltip = character.name;
+		tooltip += "\n" + "Life: " + character.curLife + " (base: " + character.baseLife + ")";
+		tooltip += "\n" + "Attack: " + character.curAttack + " (base: " + character.baseAttack + ")";
+		tooltip += "\n" + "Speed: " + character.curSpeed + " (base: " + character.baseSpeed + ")";
+	}
+	// Continue displaying tooltip while hovered
+	virtual protected void OnMouseOver() {
+		showTooltip = true;
+		if (mouseOverTime == 0)
+		{
+			mouseOverTime = Time.time;
+		}
+	}
+	// Hide tooltip when mouse leaves
+	virtual protected void OnMouseExit() {
+		showTooltip = false;
+		mouseOverTime = 0;
 	}
 }

@@ -5,10 +5,6 @@ using UnityEngine.UI;
 
 public class EnemyStateMachine : CharacterStateMachine {
 
-
-	public GameObject enemySelector;
-	private bool enemySelectorActivity;
-
 	// this was throwing errors, added a dirty fix in CSM's TimeForAction() for now
 	//new protected float positionOffset = -3f;	// offset is different for enemies
 
@@ -85,23 +81,32 @@ public class EnemyStateMachine : CharacterStateMachine {
 	}
 
 	// highlight if currently targetable
-	void OnMouseOver()
+	protected override void OnMouseOver()
 	{
 		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
 		{
 			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
 			renderer.color = Color.yellow;
 		}
+		// for tooltip
+		showTooltip = true;
+		if (mouseOverTime == 0)
+		{
+			mouseOverTime = Time.time;
+		}
 	}
 
-	// reset color on mouse exit
-	void OnMouseExit()
+	// reset color on mouse exit (if alive)
+	protected override void OnMouseExit()
 	{
 		if (this.alive == true)
 		{
 			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
 			renderer.color = new Color (255f, 255f, 255f, 255f);
 		}
+		// for tooltip
+		showTooltip = false;
+		mouseOverTime = 0;
 	}
 
 }

@@ -26,6 +26,10 @@ public class BattleStateMachine : MonoBehaviour {
 	public List<Action> performList = new List<Action> ();
 	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
 
+	private float baseTimeScale = 1f;			// the rate at which time is normally moving (for cooldowns)
+	public float selectionTimeScale = 0.15f;	// rate of cooldown when player making a selection
+	public float timeScale;				 	// current time scale
+
 
 	// player's interface
 	public enum playerGUI
@@ -65,6 +69,7 @@ public class BattleStateMachine : MonoBehaviour {
 			//enemies.OrderByDescending(e => e.gameObject.transform.position.y);
 		}
 		// BSM
+		timeScale = baseTimeScale;
 		battleState = battleStates.WAIT;
 
 		// GUI
@@ -118,8 +123,7 @@ public class BattleStateMachine : MonoBehaviour {
 		case (playerGUI.ACTIVE):
 			if (charactersToManage.Count > 0)
 			{
-				// charactersToManage [0].transform.FindChild ("Selector").gameObject.SetActive (true);
-				charactersToManage[0].selector.SetActive(true);
+				timeScale = selectionTimeScale;
 				characterChoice = new Action ();
 				actionSelectPanel.SetActive (true);
 				CreateActionButtons ();
@@ -211,8 +215,8 @@ public class BattleStateMachine : MonoBehaviour {
 	{
 		performList.Add (characterChoice);		// add action to queue (work will need to be done here to separate from BSM)
 		ExitSelection();
-		charactersToManage[0].selector.SetActive (false); // turn of selector
 		charactersToManage.RemoveAt(0);	// remove from queue
+		timeScale = baseTimeScale;
 	}
 
 	// hide the action select and enemy select panels
