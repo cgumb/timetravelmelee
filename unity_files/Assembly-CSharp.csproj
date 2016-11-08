@@ -48,6 +48,7 @@
      <Compile Include="Assets\Scripts\Actions\Action.cs" />
      <Compile Include="Assets\Scripts\Actions\BaseAction.cs" />
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
+     <Compile Include="Assets\Scripts\Actions\BrutalBayoneting.cs" />
      <Compile Include="Assets\Scripts\Actions\Lampoon.cs" />
      <Compile Include="Assets\Scripts\Actions\Move.cs" />
      <Compile Include="Assets\Scripts\Battle.cs" />
@@ -59,6 +60,10 @@
      <Compile Include="Assets\Scripts\EnemyBar.cs" />
      <Compile Include="Assets\Scripts\EnemyStateMachine.cs" />
      <Compile Include="Assets\Scripts\ITargetable.cs" />
+     <Compile Include="Assets\Scripts\Passives\FiringLine.cs" />
+     <Compile Include="Assets\Scripts\Passives\Passive.cs" />
+     <Compile Include="Assets\Scripts\Passives\StatusEffect.cs" />
+     <Compile Include="Assets\Scripts\StatusEffects\Bleed.cs" />
  <Reference Include="UnityEngine.Networking">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>

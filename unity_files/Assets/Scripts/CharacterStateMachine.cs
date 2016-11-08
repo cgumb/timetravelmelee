@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Reflection;
 
 // controls behavior of a character within the battle
 [System.Serializable]
 public class CharacterStateMachine : MonoBehaviour {
 
-	protected BattleStateMachine BSM;	// connection to BattleStateMachine
+	public BattleStateMachine BSM;	// connection to BattleStateMachine
 	public Character character;			// state machine's character (combine these in the future?)
 	public int player;
 
@@ -29,6 +30,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	public float maxPhase = 5f;
 	public Image lifeBar;			// visual representation of life
 	public Image phaseBar;			// visual representation of phase
+	public List<StatusEffect> statusEffects = new List<StatusEffect>();
 
 	public float backRowBonus = 3f;				// bonus to defense for being in back row
 	public float backRowPenalty = 0.5f;			// % of damage lost for being in back row
@@ -37,7 +39,8 @@ public class CharacterStateMachine : MonoBehaviour {
 	// variables used when performing an action
 	public bool actionStarted;				// have we already started the action?
 	public CharacterStateMachine target;	// target of action
-	public float positionOffset = -1f;		// don't want to land right on our targets!
+	int offset;						// used by movements
+	Vector2 targetPosition;					// used by movements
 	protected float moveSpeed = 8f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	//Tooltip Stuff
@@ -52,8 +55,17 @@ public class CharacterStateMachine : MonoBehaviour {
 	void Start ()
 	{
 		curState = characterState.PHASING_IN;	// set to PHASING_IN state
-		startPosition = transform.position;		// move to starting location on battlefield
+		startPosition = transform.position;		// set starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
+		// instantiate passives and add to status effects
+		foreach (Passive p in this.character.passives)
+		{
+			Passive new_p = Instantiate(p);
+			new_p.BSM = this.BSM;
+			new_p.subject = this;
+			new_p.initialized = true;
+			statusEffects.Add(new_p);
+		}
 
 		//Tooltip stuff
 		rect = new Rect (0, 0, 256, 128);
@@ -162,8 +174,7 @@ public class CharacterStateMachine : MonoBehaviour {
 			case ("Basic Attack"):
 				//animate agent to move near target
 				// dirty fix that will need to be done a cleaner way later
-				int offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
-		//		if (this.gameObject.CompareTag ("Enemy") && positionOffset < 0) {positionOffset *= -1;}
+				offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
 				Vector2 targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
 				while (MoveTowardTarget (targetPosition))
 				{
@@ -211,6 +222,25 @@ public class CharacterStateMachine : MonoBehaviour {
 				Debug.Log (this.character.name + " stole " + attackToSteal + " attack power from " + target.character.name + "!");
 				PlayActionSound();	// play a move sound
 				break;
+			case ("Brutal Bayoneting"):
+				//animate agent to move near target
+				offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
+				targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
+				while (MoveTowardTarget (targetPosition))
+				{
+					yield return null;
+				}
+				//wait
+				yield return new WaitForSeconds (0.5f);
+				// act out action
+				PlayActionSound();	// play a silly sound! =D
+				chosenAction.ActionEffect();
+				//return to starting location
+				while (MoveTowardTarget (startPosition))
+				{
+					yield return null;
+				}
+				break;
 		}
 
 
@@ -245,23 +275,29 @@ public class CharacterStateMachine : MonoBehaviour {
 		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
 	}
 
-	public void TakeDamage(float rawDamage)
+	public void TakeDamage(float rawDamage, bool canBeDefended = true)
 	{
-		float damage; // actual damage to be done
+		float damage = rawDamage; 			// actual damage to be done
+		if (canBeDefended)
+		{
+			// defense bonus if in the back row
+			float totalDefense = character.frontRow ? character.curDefense : character.curDefense + backRowBonus;
 
-		// defense bonus if in the back row
-		float totalDefense = character.frontRow? character.curDefense : character.curDefense + backRowBonus;
+			// determine damage reduction
+			float damageReduction = totalDefense / 10;
 
-		// determine damage reduction
-		float damageReduction = totalDefense / 10;
+			// cap it at 90%
+			damageReduction = (damageReduction > 0.9 ? 0.9f : damageReduction);
 
-		// cap it at 90%
-		damageReduction = (damageReduction > 0.9 ? 0.9f : damageReduction);
-
-		// calculate final damage
-		damage = rawDamage * (1 - damageReduction);
-
-		Debug.Log (character.name + " takes " + damage + " of the original " + rawDamage + " (" + damageReduction * 100 + "% damage reduction)");
+			// adjust final damage
+			damage *= (1 - damageReduction);
+	
+			Debug.Log(character.name + " takes " + damage + " of the original " + rawDamage + " (" + damageReduction * 100 + "% damage reduction)");
+		}
+		else
+		{
+			Debug.Log(character.name + " takes " + damage + " points of pure damage! Ouch!");
+		}
 		character.curLife -= damage;
 		updateLife();
 		if (character.curLife <= 0)
@@ -345,7 +381,17 @@ public class CharacterStateMachine : MonoBehaviour {
 		tooltip = character.name;
 		tooltip += "\n" + "Life: " + character.curLife + " (base: " + character.baseLife + ")";
 		tooltip += "\n" + "Attack: " + character.curAttack + " (base: " + character.baseAttack + ")";
+		tooltip += "\n" + "Defense: " + character.curDefense + " (base: " + character.baseDefense + ")";
 		tooltip += "\n" + "Speed: " + character.curSpeed + " (base: " + character.baseSpeed + ")";
+		// show status effects if any
+		if (statusEffects.Count > 0)
+		{
+			tooltip += "\n" + "Status Effects:";
+			foreach (StatusEffect e in statusEffects)
+			{
+				tooltip += "\n" + e.statusEffectName + ": " + e.tooltipString;
+			}
+		}
 	}
 	// Continue displaying tooltip while hovered
 	virtual protected void OnMouseOver() {

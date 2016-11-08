@@ -26,4 +26,5 @@ public class Character {
 	// list of actions available to character
 	public List<BaseAction> actions = new List<BaseAction>();
 
+	public List<Passive> passives = new List<Passive>();
 }

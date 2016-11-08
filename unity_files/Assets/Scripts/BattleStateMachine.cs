@@ -26,6 +26,7 @@ public class BattleStateMachine : MonoBehaviour {
 	public List<CharacterStateMachine> enemies= new List<CharacterStateMachine> ();
 
 	public List<Action> performList = new List<Action> ();
+	public Action curAction;								// action underway
 	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
 
 	private float baseTimeScale = 1f;			// the rate at which time is normally moving (for cooldowns)
@@ -101,7 +102,7 @@ public class BattleStateMachine : MonoBehaviour {
 				break;
 
 			case(battleStates.TAKEACTION):
-				Action curAction = performList[0];
+				curAction = performList[0];
 				CharacterStateMachine CSM = curAction.agent.GetComponent<CharacterStateMachine>();
 				CSM.target = curAction.target;
 				CSM.curState = CharacterStateMachine.characterState.ACTING;
@@ -181,10 +182,14 @@ public class BattleStateMachine : MonoBehaviour {
 			newButton.transform.SetParent (actionSelectSpacer, false);
 			actionButtons.Add (newButton);
 		}
-
+			
 		// dirty fix addressed above. To be resolved in the future
 		actionButtons[0].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (0));
 		actionButtons[1].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (1));
+		if (actions.Count >= 3)
+		{
+			actionButtons[2].gameObject.GetComponent<Button>().onClick.AddListener (() => Action (2));
+		}
 
 	}
 
