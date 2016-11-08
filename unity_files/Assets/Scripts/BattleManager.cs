@@ -2,47 +2,35 @@
 using System;
 using System.Collections.Generic; 		//Allows us to use Lists.
 using Random = UnityEngine.Random; 		//Tells Random to use the Unity Engine random number generator.
+using System.Linq;
 
 
 // draws background tiles (we can scrap that later) and heroes and enemies
 public class BattleManager : MonoBehaviour
 {
-	// Using Serializable allows us to embed a class with sub properties in the inspector.
-	[Serializable]
-	public class Count
-	{
-		public int minimum; 			//Minimum value for our Count class.
-		public int maximum; 			//Maximum value for our Count class.
 
-
-		//Assignment constructor.
-		public Count (int min, int max)
-		{
-			minimum = min;
-			maximum = max;
-		}
-	}
-
-	public int level = 7;											// determins number of enemies generated
+	// Grid Stuff
 	public int columns = 13; 										//Number of columns in our game board.
 	public int rows = 8;											//Number of rows in our game board.
-	public int division = 4;
-	public Count enemyCount = new Count(1, 4);						//Number of enemies to be generated
-	public int heroCount = 3;
-	public GameObject[] floorTiles;									//Array of floor prefabs.
+	public int division = 4;										//No characters at or above this row
+	public int heroFrontRow = 4;
+	public int heroBackRow = 1;
+	public int enemyFrontRow = 8;
+	public int enemyBackRow = 11;
+
+	public Battle curBattle;	// the battle to be loaded (i.e., which characters to create)
+
 	public GameObject[] enemyTiles;									//Array of enemy prefabs.
 	public GameObject[] heroTiles;									//Array of hero prefabs.
 
+	public GameObject[] floorTiles;									//Array of floor prefabs.
 	public GameObject[] outerWallTiles;								//Array of outer tile prefabs.
 
 	private Transform boardHolder;									//A variable to store a reference to the transform of our Board object.
 	public List <Vector3> gridPositions = new List <Vector3> ();	//A list of possible locations to place tiles.
 	public List <Vector3> heroPositions = new List <Vector3> ();	//A list of possible locations to place tiles.
 	public List <Vector3> enemyPositions = new List <Vector3> ();	//A list of possible locations to place tiles.
-	public int heroFrontRow = 4;
-	public int heroBackRow = 1;
-	public int enemyFrontRow = 8;
-	public int enemyBackRow = 11;
+
 
 
 	//Clears our list gridPositions and prepares it to generate a new board.
@@ -128,32 +116,30 @@ public class BattleManager : MonoBehaviour
 
 	// LayoutObjectAtRandom accepts an array of game objects to choose from along with a minimum and maximum range for the number of objects to create.
 	//the positions parameter are the valid positions the objects can be placed
-	void PlaceUnitsAtRandom (GameObject[] tileArray, int minimum, int maximum, List<Vector3> positions)
+	void PlaceUnitsAtRandom (GameObject[] tileArray, List<Vector3> positions)
 	{
-		//Choose a random number of objects to instantiate within the minimum and maximum limits
-		int objectCount = Random.Range (minimum, maximum+1);
 		//Instantiate objects until the randomly chosen limit objectCount is reached
-		for(int i = 0; i < objectCount; i++)
+		foreach (GameObject t in tileArray)
 		{
-			//Choose a position for randomPosition by getting a random position from our list of available Vector3s stored in gridPosition
+			//Choose a random position from our list of available Vector3s stored in gridPosition
 			Vector3 randomPosition = RandomPosition(positions);
 
-			//Choose a random tile from tileArray and assign it to tileChoice
-			GameObject tileChoice = tileArray[Random.Range (0, tileArray.Length)];
+		//	//Choose a random tile from tileArray and assign it to tileChoice
+		//	GameObject tileChoice = tileArray[Random.Range (0, tileArray.Length)];
 
 			// mark the row of the newly placed unit
 			int row = (int)randomPosition.x;
 			if (row == heroFrontRow || row == enemyFrontRow)
 			{
-				tileChoice.gameObject.GetComponent<CharacterStateMachine>().character.frontRow = true;
+				t.gameObject.GetComponent<CharacterStateMachine>().character.frontRow = true;
 			}
 			else
 			{
-				tileChoice.gameObject.GetComponent<CharacterStateMachine>().character.frontRow = false;
+				t.gameObject.GetComponent<CharacterStateMachine>().character.frontRow = false;
 			}
 
 			//Instantiate tileChoice at the position returned by RandomPosition with no change in rotation
-			Instantiate(tileChoice, randomPosition, Quaternion.identity);
+			Instantiate(t, randomPosition, Quaternion.identity);
 		}
 	}
 		
@@ -167,11 +153,15 @@ public class BattleManager : MonoBehaviour
 		//Reset our list of gridpositions.
 		InitialiseList ();
 
+		// determin which characters to create
+		heroTiles = curBattle.charactersInBattle.Where(c => c.CompareTag("Character")).ToArray();
+		enemyTiles = curBattle.charactersInBattle.Where(c => c.CompareTag("Enemy")).ToArray();
+
 		//Instantiate a random number of enemies based on minimum and maximum, at randomized positions.
-		PlaceUnitsAtRandom (enemyTiles, enemyCount.minimum, enemyCount.maximum, enemyPositions);
+		PlaceUnitsAtRandom (enemyTiles, enemyPositions);
 
 		//Instantiate a random number of heroes based on minimum and maximum, at randomized positions.
-		PlaceUnitsAtRandom (heroTiles, heroCount, heroCount, heroPositions);
+		PlaceUnitsAtRandom (heroTiles, heroPositions);
 	}
 }
 

@@ -25,8 +25,8 @@ public class CharacterStateMachine : MonoBehaviour {
 	public characterState curState;
 	public Vector2 startPosition;		// where character begins on the battlefield
 	protected bool alive = true;
-	protected float curPhase = 0f;		//
-	protected float maxPhase = 5f;
+	public float curPhase = 0f;		//
+	public float maxPhase = 5f;
 	public Image lifeBar;			// visual representation of life
 	public Image phaseBar;			// visual representation of phase
 

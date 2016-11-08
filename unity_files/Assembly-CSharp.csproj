@@ -50,6 +50,7 @@
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
      <Compile Include="Assets\Scripts\Actions\Lampoon.cs" />
      <Compile Include="Assets\Scripts\Actions\Move.cs" />
+     <Compile Include="Assets\Scripts\Battle.cs" />
      <Compile Include="Assets\Scripts\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />

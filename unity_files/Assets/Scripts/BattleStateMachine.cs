@@ -19,6 +19,8 @@ public class BattleStateMachine : MonoBehaviour {
 
 	public battleStates battleState;	// current battleState
 
+
+
 	public CharacterStateMachine[] allCSMs;
 	public List<CharacterStateMachine> characters = new List<CharacterStateMachine> ();
 	public List<CharacterStateMachine> enemies= new List<CharacterStateMachine> ();
@@ -27,9 +29,9 @@ public class BattleStateMachine : MonoBehaviour {
 	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
 
 	private float baseTimeScale = 1f;			// the rate at which time is normally moving (for cooldowns)
-	public float selectionTimeScale = 0.15f;	// rate of cooldown when player making a selection
-	public float timeScale;				 	// current time scale
-
+	public float selectionTimeScale = 0f;		// rate of cooldown when player making a selection
+	public float timeScale;				 		// current time scale
+	public float startingPhaseCap = 0.2f;		// phase starts at filled to a random percent; this is the cap
 
 	// player's interface
 	public enum playerGUI
@@ -59,6 +61,7 @@ public class BattleStateMachine : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
 	{
+		// get characters to create from curBattle's array	
 		allCSMs = GameObject.FindObjectsOfType<CharacterStateMachine> ();
 		foreach (CharacterStateMachine CSM in allCSMs)
 		{
@@ -67,6 +70,9 @@ public class BattleStateMachine : MonoBehaviour {
 
 			if (CSM.CompareTag("Enemy")) {enemies.Add(CSM);}	
 			//enemies.OrderByDescending(e => e.gameObject.transform.position.y);
+
+			// set each character's phase to a random percent full (capped by startingPhaseCap) 
+			CSM.curPhase = Random.value * startingPhaseCap * CSM.maxPhase;
 		}
 		// BSM
 		timeScale = baseTimeScale;
