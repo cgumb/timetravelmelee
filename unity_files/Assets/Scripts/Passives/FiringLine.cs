@@ -20,7 +20,7 @@ public class FiringLine : Passive
 		if (initialized)
 		{
 			bonusLevel = BSM.enemies.Where(e => e.name == subject.name && e.character.frontRow == subject.character.frontRow && e.IsAlive()).Count() - 1;
-			if (bonusLevel > 1)
+			if (bonusLevel >= 1)
 			{
 				totalBonus = Mathf.Pow(baseBonus, bonusLevel);
 			}
