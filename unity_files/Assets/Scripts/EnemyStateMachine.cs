@@ -75,7 +75,14 @@ public class EnemyStateMachine : CharacterStateMachine {
 	// set this enemy as target if it's alive and the player is in targeting state
 	void OnMouseDown()
 	{
+		/*
 		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
+		{
+			BSM.SelectTarget(this);
+		}
+		*/
+
+		if (IsTargetable() == true)
 		{
 			BSM.SelectTarget(this);
 		}
@@ -90,14 +97,10 @@ public class EnemyStateMachine : CharacterStateMachine {
 			float colorValue = (Mathf.Sin(Time.time * 8) + 1f) / 6.0f;
 			Color myColor = Color.white;
 			myColor.g = colorValue;
-			//myColor.b = colorValue;
 
 			renderer.color = myColor;
-			//renderer.color = new Color(1f, colorValue2, 1f, 1f);
-
-			//renderer.color = Color.yellow;
 		}
-		else
+		else if (IsAlive() == true )
 		{
 			renderer.color = Color.white;
 		}
@@ -113,21 +116,11 @@ public class EnemyStateMachine : CharacterStateMachine {
 		}
 	}
 
-	/*
-	protected void OnMouseEnter()
-	{
-		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
-		{
-			BSM.PlaySound(BSM.hoverSound);
-		}
-	}
-	*/
-
 
 	// reset color on mouse exit (if alive)
 	protected override void OnMouseExit()
 	{
-		if (this.alive == true)
+		if (IsAlive() == true)
 		{
 			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
 			renderer.color = new Color (255f, 255f, 255f, 255f);
@@ -139,7 +132,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 
 	public bool IsTargetable()
 	{
-		return this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING;
+		return IsAlive() == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING;
 	}
 
 }

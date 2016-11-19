@@ -369,8 +369,9 @@ public class CharacterStateMachine : MonoBehaviour {
 
 		// change color
 		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-		renderer.color = new Color (156f, 0f, 0f, 255f);
 		alive = false;
+		renderer.color = new Color (156f, 0f, 0f, 255f);
+
 	}
 
 	// character flashes red
