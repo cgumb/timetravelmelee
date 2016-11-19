@@ -49,6 +49,7 @@
      <Compile Include="Assets\Background\PlayVideo.cs" />
      <Compile Include="Assets\Background\RendererExtensions.cs" />
      <Compile Include="Assets\Background\scroll.cs" />
+     <Compile Include="Assets\Scripts\ActionButton.cs" />
      <Compile Include="Assets\Scripts\Actions\Action.cs" />
      <Compile Include="Assets\Scripts\Actions\BaseAction.cs" />
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />

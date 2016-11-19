@@ -42,8 +42,9 @@ public class BattleStateMachine : MonoBehaviour {
 	protected float mouseOverTime = 0f;
 
 	/* Character Select arrow display */
-	public CharSelectArrow arrow;
-	private Dictionary<CharacterStateMachine, CharSelectArrow> Arrows = new Dictionary<CharacterStateMachine, CharSelectArrow> ();
+	public CharSelectArrow arrow;			// arrow prefab
+	// this is a dictionary where the key is a CharacterStateMachines and the value is the CharSelectArrow assigned to it
+	private Dictionary<CharacterStateMachine, CharSelectArrow> arrows = new Dictionary<CharacterStateMachine, CharSelectArrow> ();
 
 	// player's interface
 	public enum playerGUI
@@ -57,9 +58,9 @@ public class BattleStateMachine : MonoBehaviour {
 	public GameObject battleCanvas; // should be set automatically :/
 
 	/* GUI Sounds */
-	public AudioClip hoverSound;
-	public AudioClip clickSound;
-	public AudioClip arrowOnSound;
+	public AudioClip hoverSound;	// plays on hovering over selectable object
+	public AudioClip clickSound;	// plays on object selection
+	public AudioClip arrowOnSound;	// plays when arrow is made visible
 
 
 	public GameObject characterBar; 	// character bar to create
@@ -68,8 +69,8 @@ public class BattleStateMachine : MonoBehaviour {
 
 	public GameObject actionSelectPanel;	// where player selects a character
 	public Transform actionSelectSpacer;	// spacer holds each action option
-	public GameObject actionButton;				// perfab of action button
-	private List<GameObject> actionButtons = new List<GameObject> ();
+	public ActionButton actionButton;				// perfab of action button
+	private List<ActionButton> actionButtons = new List<ActionButton> ();
 
 	public playerGUI playerInput;					// current state of playerGUI
 	public Action characterChoice;			// action player has selected
@@ -108,6 +109,7 @@ public class BattleStateMachine : MonoBehaviour {
 		enemies = enemies.OrderByDescending(e => e.gameObject.transform.position.y).ToList();		// sort by column
 		CreateBars(enemies, enemySpacer);
 		CreateBars(characters, characterSpacer);
+		// create CharSelectArrows and assign them to each character
 		CreateArrows();
 
 		// start characters phasing in
@@ -211,9 +213,12 @@ public class BattleStateMachine : MonoBehaviour {
 
 		foreach (BaseAction action in actions)
 		{
-			GameObject newButton = Instantiate (actionButton) as GameObject;
+			ActionButton newButton = Instantiate (actionButton) as ActionButton;
+			newButton.energyCost = action.actionEnergyCost;
+
 			Text actionButtonText = newButton.transform.FindChild ("Text").gameObject.GetComponent<Text>();
-			actionButtonText.text = action.actionName + " (" + action.actionEnergyCost + " energy)";
+
+			actionButtonText.text = action.actionName + " (" + newButton.energyCost + " energy)";
 			//Debug.Log ("Making Button for " + action.actionName + " which has an index of " + actions.IndexOf(action));
 			// the following code to add a listen which calls Action with the index of the button's action wasn't working
 			// both buttons ended up calling Move()
@@ -280,9 +285,9 @@ public class BattleStateMachine : MonoBehaviour {
 	{
 		actionSelectPanel.SetActive (false);
 		// clean up action panel after selection is made
-		foreach (GameObject button in actionButtons)
+		foreach (ActionButton button in actionButtons)
 		{
-			Destroy (button);
+			Destroy (button.gameObject);
 		}
 		actionButtons.Clear ();
 		playerInput = playerGUI.ACTIVE;		// set gui state to active
@@ -334,22 +339,20 @@ public class BattleStateMachine : MonoBehaviour {
 			CharSelectArrow newArrow = Instantiate(arrow) as CharSelectArrow;
 			newArrow.owner = curCharacter;
 
-			Arrows.Add(curCharacter, newArrow);
+			arrows.Add(curCharacter, newArrow);
 		}
 	}
 
 	void ToggleArrow()
 	{
 		CharacterStateMachine curChar = charactersToManage[0];
-		CharSelectArrow curArrow = Arrows [curChar];
+		CharSelectArrow curArrow = arrows [curChar];
 		SpriteRenderer renderer = curArrow.GetComponent<SpriteRenderer>();
 
-		renderer.enabled = !renderer.enabled;
+		renderer.enabled = !renderer.enabled;	// toggle visability
 		if (renderer.enabled == true)
 		{
-			PlaySound(arrowOnSound);
-			//curArrow.Flash();
-
+			PlaySound(arrowOnSound);	// play sound if making visible
 		}
 	}
 
