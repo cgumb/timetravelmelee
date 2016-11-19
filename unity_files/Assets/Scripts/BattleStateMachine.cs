@@ -18,6 +18,7 @@ public class BattleStateMachine : MonoBehaviour {
 	}
 
 	public battleStates battleState;	// current battleState
+	public DrawBattle Draw; 			// DrawBattle Object
 
 	public CharacterStateMachine[] allCSMs;
 	public List<CharacterStateMachine> characters = new List<CharacterStateMachine> ();
@@ -76,14 +77,16 @@ public class BattleStateMachine : MonoBehaviour {
 	public Action characterChoice;			// action player has selected
 
 
-	void Start(){
+	void Start()
+	{
+		Draw = this.gameObject.GetComponent<DrawBattle>();
 	}
 	void Awake(){
 	}
 	// Use this to generate a battle
 	public void Load ()
 	{
-		this.gameObject.GetComponent<DrawBattle>().Draw(); // draw the units
+		Draw.Draw(); // draw the units
 		// get characters to create from curBattle's array	
 		allCSMs = GameObject.FindObjectsOfType<CharacterStateMachine> ();
 		foreach (CharacterStateMachine CSM in allCSMs)

@@ -54,6 +54,7 @@
      <Compile Include="Assets\Scripts\Actions\BaseAction.cs" />
      <Compile Include="Assets\Scripts\Actions\BasicAttack.cs" />
      <Compile Include="Assets\Scripts\Actions\BrutalBayoneting.cs" />
+     <Compile Include="Assets\Scripts\Actions\FalseOrders.cs" />
      <Compile Include="Assets\Scripts\Actions\Lampoon.cs" />
      <Compile Include="Assets\Scripts\Actions\Move.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
@@ -70,6 +71,7 @@
      <Compile Include="Assets\Scripts\Passives\Passive.cs" />
      <Compile Include="Assets\Scripts\Passives\StatusEffect.cs" />
      <Compile Include="Assets\Scripts\StatusEffects\Bleed.cs" />
+     <Compile Include="Assets\Scripts\StatusEffects\FalseOrdersStatusEffect.cs" />
  <Reference Include="UnityEngine.Networking">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>

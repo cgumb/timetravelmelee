@@ -42,7 +42,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	public CharacterStateMachine target;	// target of action
 	int offset;						// used by movements
 	Vector2 targetPosition;					// used by movements
-	protected float moveSpeed = 10f;			// how quickly you move around the battlefield (have speed affect this?)
+	public float moveSpeed = 10f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	//Tooltip Stuff
 	public GUIStyle style = new GUIStyle();
@@ -247,6 +247,10 @@ public class CharacterStateMachine : MonoBehaviour {
 				{
 					yield return null;
 				}
+				break;
+			case ("False Orders"):
+				chosenAction.ActionEffect();
+				PlayActionSound();
 				break;
 		}
 

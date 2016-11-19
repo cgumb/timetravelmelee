@@ -16,7 +16,7 @@ public class Bleed : StatusEffect {
 		durationInTurns = 3;
 		durationInTime = subject.maxPhase * durationInTurns;
 
-		totalDamage = 30;
+		totalDamage = 40;
 		damagePerTick = totalDamage / durationInTime;
 	
 	}
