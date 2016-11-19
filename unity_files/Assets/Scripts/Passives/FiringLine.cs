@@ -10,7 +10,7 @@ public class FiringLine : Passive
 	void Awake() {
 		statusEffectName = "Firing Line";
 		bonusLevel = 0;
-		defenseBonus = 1;
+		defenseBonus = 2;
 	}
 
 	// calculate current bonus, add it to defense, and update tooltip string
@@ -20,7 +20,7 @@ public class FiringLine : Passive
 		{
 			bonusLevel = BSM.enemies.Where(e => e.name == subject.name && e.character.frontRow == subject.character.frontRow && e.IsAlive()).Count() - 1;
 			subject.character.curDefense = subject.character.baseDefense + bonusLevel * defenseBonus;
-			tooltipString = "+" + (bonusLevel * defenseBonus) + " to defense";
+			tooltipString = "+" + Mathf.Pow(defenseBonus, bonusLevel) + " to defense";
 		}
 	}
 }
