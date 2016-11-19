@@ -29,7 +29,7 @@ public class FiringLine : Passive
 				totalBonus = 0;
 			}
 			subject.character.curDefense = subject.character.baseDefense + totalBonus;
-			tooltipString = "+" + Mathf.Pow(baseBonus, bonusLevel) + " to defense";
+			tooltipString = "+" + totalBonus + " to defense";
 		}
 	}
 }
