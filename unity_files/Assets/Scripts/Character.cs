@@ -19,9 +19,19 @@ public class Character {
 	public float baseLife;
 	public float curLife;
 
+	public AudioClip moveSound;
+	public AudioClip deathSound;
+	public AudioClip damagedSound;
+	public AudioClip bleedSound;
+
 	/* true = front line
 	 * false = back line */
 	public bool frontRow;
+
+	/* variables for energy production */
+	public bool makesEnergy = false;
+	public float baseEnergyProduction = 1f;
+	public float curEnergyProduction = 1f;
 
 	// list of actions available to character
 	public List<BaseAction> actions = new List<BaseAction>();

@@ -10,6 +10,7 @@ public class Bleed : StatusEffect {
 	// Use this for initialization
 	void Start ()
 	{
+		subject.PlaySound(subject.character.bleedSound);
 		statusEffectName = "Bleed";
 
 		durationInTurns = 3;
@@ -33,7 +34,7 @@ public class Bleed : StatusEffect {
 			else if (subject.curState == CharacterStateMachine.characterState.PHASING_IN)
 			{
 				durationInTime -= (subject.character.curSpeed * Time.deltaTime * BSM.timeScale);
-				subject.TakeDamage(subject.character.curSpeed * Time.deltaTime * BSM.timeScale, canBeDefended: false);
+				subject.TakeDamage(subject.character.curSpeed * Time.deltaTime * BSM.timeScale, canBeDefended: false, isSilent: true);
 
 				tooltipString = Mathf.Round(damagePerTick * subject.character.curSpeed) + " damager per second for " + Mathf.Round(durationInTime) + " seconds";
 			}

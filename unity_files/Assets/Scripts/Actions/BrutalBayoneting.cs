@@ -12,8 +12,8 @@ public class BrutalBayoneting : BaseAction {
 		// making the damage randomized was causing issues as a Random.Range()
 		// method call only happens once at the beginning of the game
 		// we'll have to puzzle this one out
-	//	actionDamage = 5f;
-	//	actionEnergyCost = 0;
+		//	actionDamage = 5f;
+		actionEnergyCost = 3;
 		takesTarget = true;	
 			
 	}
@@ -24,7 +24,6 @@ public class BrutalBayoneting : BaseAction {
 		// should later find a way to load the bleed prefab automatically
 		//StatusEffect newBleed = Instantiate(Resources.Load("Bleed") as StatusEffect);
 		StatusEffect newBleed = Instantiate(bleed);
-		Debug.Log("Instantiated Bleed");
 		newBleed.subject.statusEffects.Add(newBleed);
 		newBleed.initialized = true;
 	}

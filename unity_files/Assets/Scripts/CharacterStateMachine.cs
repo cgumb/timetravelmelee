@@ -9,6 +9,7 @@ using System.Reflection;
 public class CharacterStateMachine : MonoBehaviour {
 
 	public BattleStateMachine BSM;	// connection to BattleStateMachine
+	public DrawBattle Draw;			// connection to info about battle layout
 	public Character character;			// state machine's character (combine these in the future?)
 	public int player;
 
@@ -27,7 +28,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	public Vector2 startPosition;		// where character begins on the battlefield
 	protected bool alive = true;
 	public float curPhase = 0f;		//
-	public float maxPhase = 5f;
+	public float maxPhase = 3f;
 	public Image lifeBar;			// visual representation of life
 	public Image phaseBar;			// visual representation of phase
 	public List<StatusEffect> statusEffects = new List<StatusEffect>();
@@ -41,7 +42,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	public CharacterStateMachine target;	// target of action
 	int offset;						// used by movements
 	Vector2 targetPosition;					// used by movements
-	protected float moveSpeed = 8f;			// how quickly you move around the battlefield (have speed affect this?)
+	protected float moveSpeed = 10f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	//Tooltip Stuff
 	public GUIStyle style = new GUIStyle();
@@ -54,9 +55,12 @@ public class CharacterStateMachine : MonoBehaviour {
 	// when a CharacterStateMachine is created
 	void Start ()
 	{
-		curState = characterState.PHASING_IN;	// set to PHASING_IN state
+		//curState = characterState.WAITING;	// start idle 
 		startPosition = transform.position;		// set starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
+		Draw = GameObject.Find("BattleManager").GetComponent<DrawBattle>(); // connect to Draw Battle
+		SetScale();
+
 		// instantiate passives and add to status effects
 		foreach (Passive p in this.character.passives)
 		{
@@ -83,6 +87,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	// executes on every frame
 	protected virtual void Update ()
 	{
+		SetScale();
 		switch (curState)
 		{
 			// phase in until phase is full
@@ -178,6 +183,7 @@ public class CharacterStateMachine : MonoBehaviour {
 				Vector2 targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
 				while (MoveTowardTarget (targetPosition))
 				{
+					PlaySound(character.moveSound);
 					yield return null;
 				}
 				//wait
@@ -185,6 +191,7 @@ public class CharacterStateMachine : MonoBehaviour {
 				//deal damage
 				PlayActionSound();	// play a silly sound! =D
 				DealDamage ();
+				makeEnergy ();
 
 				//return to starting location
 				while (MoveTowardTarget (startPosition))
@@ -193,8 +200,8 @@ public class CharacterStateMachine : MonoBehaviour {
 				}
 				break;
 			case ("Move"):
-				float toMove = 2f; // distance to move (i.e., distance between front and back rows)
-				int direction = character.frontRow ? -1 : 1;	// negative means move left on x-axis, postive right 
+				float toMove = Draw.columnOffsetX; // distance to move (i.e., distance between front and back rows)
+				int direction = character.frontRow ? -1 : 1;	// negative means move left on x-axis, postive right
 				if (this.gameObject.CompareTag ("Enemy")) {direction *= -1;} // direction is reversed for enemies
 				startPosition = new Vector2 (transform.position.x + direction * toMove, transform.position.y);
 				PlayActionSound();	// play a move sound
@@ -243,6 +250,8 @@ public class CharacterStateMachine : MonoBehaviour {
 				break;
 		}
 
+		/* Spend energy cost of action after completion */
+		BSM.playerEnergy -= chosenAction.actionEnergyCost;
 
 		//remove action from list (if it exists, a loss/win will have already removed it :/
 		if (BSM.performList.Count > 0) {BSM.performList.RemoveAt(0);}
@@ -275,7 +284,18 @@ public class CharacterStateMachine : MonoBehaviour {
 		target.GetComponent<CharacterStateMachine>().TakeDamage (calculatedDamage);
 	}
 
-	public void TakeDamage(float rawDamage, bool canBeDefended = true)
+	// if this character makes energy, add their curent production to the energy pool
+	public void makeEnergy() {
+		if (character.makesEnergy) {
+			BSM.playerEnergy += character.curEnergyProduction;
+		}
+	}
+
+	/* Note: DealDamage() should be moved to an interface DealsDamage so many classes can use it
+	 * this way the canBeDefended and isSilent parameters are set by the damage dealer
+	 * be it a character or a status effect
+	 */
+	public void TakeDamage(float rawDamage, bool canBeDefended = true, bool isSilent = false)
 	{
 		float damage = rawDamage; 			// actual damage to be done
 		if (canBeDefended)
@@ -291,7 +311,7 @@ public class CharacterStateMachine : MonoBehaviour {
 
 			// adjust final damage
 			damage *= (1 - damageReduction);
-	
+
 			Debug.Log(character.name + " takes " + damage + " of the original " + rawDamage + " (" + damageReduction * 100 + "% damage reduction)");
 		}
 		else
@@ -305,8 +325,12 @@ public class CharacterStateMachine : MonoBehaviour {
 
 			curState = characterState.DEAD;
 		}
+		else if (isSilent == false)
+		{
+			PlaySound(character.damagedSound);
+		}
 	}
-		
+
 	public void PlayActionSound()
 	{
 		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
@@ -321,6 +345,7 @@ public class CharacterStateMachine : MonoBehaviour {
 
 	protected void die()
 	{
+		PlaySound(character.deathSound);
 		// remove action select panel if this character was selecting an action/target
 		if (BSM.charactersToManage.Count > 0 && BSM.charactersToManage [0] == this)
 		{
@@ -348,8 +373,8 @@ public class CharacterStateMachine : MonoBehaviour {
 		alive = false;
 	}
 
-	// character flashes red 
-	IEnumerator Flasher() 
+	// character flashes red
+	IEnumerator Flasher()
 	{
 		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
 		for (int i = 0; i < 3; i++)
@@ -358,7 +383,7 @@ public class CharacterStateMachine : MonoBehaviour {
 			yield return new WaitForSeconds(.1f);
 			if (this.IsAlive()) // reseting color if dead causes problems :/
 			{
-				renderer.color = new Color (255f, 255f, 255f, 255f); 
+				renderer.color = new Color (255f, 255f, 255f, 255f);
 			}
 			yield return new WaitForSeconds(.1f);
 		}
@@ -406,4 +431,23 @@ public class CharacterStateMachine : MonoBehaviour {
 		showTooltip = false;
 		mouseOverTime = 0;
 	}
+
+	//Maaaath!!
+	protected void SetScale()
+	{
+		float scaleBoost = 0.3f;
+		float toBoost = (1 - Mathf.Abs((Mathf.Abs((this.gameObject.transform.position.y - Draw.bottomLeftPosition.y)) / Draw.range))) * scaleBoost;
+
+		Vector2 newScale = new Vector2(1f + toBoost, 1f + toBoost);
+		this.gameObject.transform.localScale = newScale;
+	}
+
+	public void PlaySound(AudioClip sound)
+	{
+		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
+		audio.clip = sound;
+		audio.Play ();
+	}
 }
+
+

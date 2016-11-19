@@ -45,6 +45,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Background\PlayMovieOnSpace.cs" />
+     <Compile Include="Assets\Background\PlayVideo.cs" />
      <Compile Include="Assets\Background\RendererExtensions.cs" />
      <Compile Include="Assets\Background\scroll.cs" />
      <Compile Include="Assets\Scripts\Actions\Action.cs" />
@@ -53,12 +55,13 @@
      <Compile Include="Assets\Scripts\Actions\BrutalBayoneting.cs" />
      <Compile Include="Assets\Scripts\Actions\Lampoon.cs" />
      <Compile Include="Assets\Scripts\Actions\Move.cs" />
-     <Compile Include="Assets\Scripts\Battle.cs" />
-     <Compile Include="Assets\Scripts\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleStateMachine.cs" />
+     <Compile Include="Assets\Scripts\BattleTemplate.cs" />
+     <Compile Include="Assets\Scripts\CharSelectArrow.cs" />
      <Compile Include="Assets\Scripts\Character.cs" />
      <Compile Include="Assets\Scripts\CharacterBar.cs" />
      <Compile Include="Assets\Scripts\CharacterStateMachine.cs" />
+     <Compile Include="Assets\Scripts\DrawBattle.cs" />
      <Compile Include="Assets\Scripts\EnemyBar.cs" />
      <Compile Include="Assets\Scripts\EnemyStateMachine.cs" />
      <Compile Include="Assets\Scripts\ITargetable.cs" />

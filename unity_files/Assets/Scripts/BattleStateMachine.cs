@@ -19,8 +19,6 @@ public class BattleStateMachine : MonoBehaviour {
 
 	public battleStates battleState;	// current battleState
 
-
-
 	public CharacterStateMachine[] allCSMs;
 	public List<CharacterStateMachine> characters = new List<CharacterStateMachine> ();
 	public List<CharacterStateMachine> enemies= new List<CharacterStateMachine> ();
@@ -34,6 +32,19 @@ public class BattleStateMachine : MonoBehaviour {
 	public float timeScale;				 		// current time scale
 	public float startingPhaseCap = 0.2f;		// phase starts at filled to a random percent; this is the cap
 
+	public float playerEnergy = 0f;             // to track the player's energy total
+
+	/* Energy pool display */
+	public Rect energyRect;
+	public GUIStyle style = new GUIStyle();
+	public bool showTooltip = false;
+	Texture2D energyTexture = new Texture2D(256, 128);
+	protected float mouseOverTime = 0f;
+
+	/* Character Select arrow display */
+	public CharSelectArrow arrow;
+	private Dictionary<CharacterStateMachine, CharSelectArrow> Arrows = new Dictionary<CharacterStateMachine, CharSelectArrow> ();
+
 	// player's interface
 	public enum playerGUI
 	{
@@ -44,6 +55,11 @@ public class BattleStateMachine : MonoBehaviour {
 	}
 
 	public GameObject battleCanvas; // should be set automatically :/
+
+	/* GUI Sounds */
+	public AudioClip hoverSound;
+	public AudioClip clickSound;
+	public AudioClip arrowOnSound;
 
 
 	public GameObject characterBar; 	// character bar to create
@@ -59,9 +75,14 @@ public class BattleStateMachine : MonoBehaviour {
 	public Action characterChoice;			// action player has selected
 
 
-	// Use this for initialization
-	void Start ()
+	void Start(){
+	}
+	void Awake(){
+	}
+	// Use this to generate a battle
+	public void Load ()
 	{
+		this.gameObject.GetComponent<DrawBattle>().Draw(); // draw the units
 		// get characters to create from curBattle's array	
 		allCSMs = GameObject.FindObjectsOfType<CharacterStateMachine> ();
 		foreach (CharacterStateMachine CSM in allCSMs)
@@ -75,6 +96,7 @@ public class BattleStateMachine : MonoBehaviour {
 			// set each character's phase to a random percent full (capped by startingPhaseCap) 
 			CSM.curPhase = Random.value * startingPhaseCap * CSM.maxPhase;
 		}
+
 		// BSM
 		timeScale = baseTimeScale;
 		battleState = battleStates.WAIT;
@@ -86,6 +108,25 @@ public class BattleStateMachine : MonoBehaviour {
 		enemies = enemies.OrderByDescending(e => e.gameObject.transform.position.y).ToList();		// sort by column
 		CreateBars(enemies, enemySpacer);
 		CreateBars(characters, characterSpacer);
+		CreateArrows();
+
+		// start characters phasing in
+		foreach (CharacterStateMachine CSM in allCSMs)
+		{
+			CSM.curState = CharacterStateMachine.characterState.PHASING_IN;
+		}
+
+		//Energy pool display
+		energyRect = new Rect (0, 0, 128, 16);
+		for (int y = 0; y < energyTexture.height; ++y)
+		{
+			for (int x = 0; x < energyTexture.width; ++x)
+			{
+				energyTexture.SetPixel(x, y, Color.white);
+			}
+		}
+		energyTexture.Apply();
+		style.normal.background = energyTexture;
 	}
 
 	// Update is called once per frame
@@ -130,6 +171,8 @@ public class BattleStateMachine : MonoBehaviour {
 		case (playerGUI.ACTIVE):
 			if (charactersToManage.Count > 0)
 			{
+				ToggleArrow();
+
 				timeScale = selectionTimeScale;
 				characterChoice = new Action ();
 				actionSelectPanel.SetActive (true);
@@ -146,8 +189,8 @@ public class BattleStateMachine : MonoBehaviour {
 			// idle state
 			break;
 
-		case (playerGUI.DONE):
-			PlayerInputDone ();
+			case (playerGUI.DONE):
+				PlayerInputDone();
 			break;
 		}
 	}
@@ -170,7 +213,7 @@ public class BattleStateMachine : MonoBehaviour {
 		{
 			GameObject newButton = Instantiate (actionButton) as GameObject;
 			Text actionButtonText = newButton.transform.FindChild ("Text").gameObject.GetComponent<Text>();
-			actionButtonText.text = action.actionName;
+			actionButtonText.text = action.actionName + " (" + action.actionEnergyCost + " energy)";
 			//Debug.Log ("Making Button for " + action.actionName + " which has an index of " + actions.IndexOf(action));
 			// the following code to add a listen which calls Action with the index of the button's action wasn't working
 			// both buttons ended up calling Move()
@@ -218,6 +261,7 @@ public class BattleStateMachine : MonoBehaviour {
 	{
 		//this just defaults to the only enemy at the moment :(
 		characterChoice.target = target;
+		PlaySound(clickSound);
 		playerInput = playerGUI.DONE;
 	}
 
@@ -226,6 +270,7 @@ public class BattleStateMachine : MonoBehaviour {
 	{
 		performList.Add (characterChoice);		// add action to queue (work will need to be done here to separate from BSM)
 		ExitSelection();
+		ToggleArrow();
 		charactersToManage.RemoveAt(0);	// remove from queue
 		timeScale = baseTimeScale;
 	}
@@ -270,8 +315,57 @@ public class BattleStateMachine : MonoBehaviour {
 			curCharacter.phaseBar = newBar.transform.FindChild("Border/PhaseBar").gameObject.GetComponent<Image>();
 			curCharacter.lifeBar = newBar.transform.FindChild("Border/LifeBar").gameObject.GetComponent<Image>();
 
+			/* Only have this character produce energy if it is owned by the player, not the enemy */
+			if (spacer == characterSpacer) {
+				curCharacter.character.makesEnergy = true;
+			} else {
+				curCharacter.character.makesEnergy = false;
+			}
+
 			newBar.transform.SetParent(spacer);
 
 		}
+	}
+
+	void CreateArrows()
+	{
+		foreach (CharacterStateMachine curCharacter in characters)
+		{
+			CharSelectArrow newArrow = Instantiate(arrow) as CharSelectArrow;
+			newArrow.owner = curCharacter;
+
+			Arrows.Add(curCharacter, newArrow);
+		}
+	}
+
+	void ToggleArrow()
+	{
+		CharacterStateMachine curChar = charactersToManage[0];
+		CharSelectArrow curArrow = Arrows [curChar];
+		SpriteRenderer renderer = curArrow.GetComponent<SpriteRenderer>();
+
+		renderer.enabled = !renderer.enabled;
+		if (renderer.enabled == true)
+		{
+			PlaySound(arrowOnSound);
+			//curArrow.Flash();
+
+		}
+	}
+
+	/* Display energy pool box */
+	protected void OnGUI()
+	{
+		energyRect.x = Screen.width / 2;
+		energyRect.y = 0;
+		GUI.Box(energyRect, "Energy Pool: " + playerEnergy, style);
+	}
+
+	// Play a GUI sound
+	public void PlaySound(AudioClip sound)
+	{
+		AudioSource audio = this.gameObject.GetComponent<AudioSource> ();
+		audio.clip = sound;
+		audio.Play ();
 	}
 }

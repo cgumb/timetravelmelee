@@ -10,6 +10,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 
 	protected override void Update ()
 	{
+		SetScale();
 		switch (curState)
 		{
 		case(characterState.PHASING_IN):
@@ -83,18 +84,45 @@ public class EnemyStateMachine : CharacterStateMachine {
 	// highlight if currently targetable
 	protected override void OnMouseOver()
 	{
-		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
+		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
+		if (IsTargetable())
 		{
-			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-			renderer.color = Color.yellow;
+			float colorValue = (Mathf.Sin(Time.time * 8) + 1f) / 6.0f;
+			Color myColor = Color.white;
+			myColor.g = colorValue;
+			//myColor.b = colorValue;
+
+			renderer.color = myColor;
+			//renderer.color = new Color(1f, colorValue2, 1f, 1f);
+
+			//renderer.color = Color.yellow;
+		}
+		else
+		{
+			renderer.color = Color.white;
 		}
 		// for tooltip
 		showTooltip = true;
 		if (mouseOverTime == 0)
 		{
+			if (IsTargetable())
+			{
+				BSM.PlaySound(BSM.hoverSound);
+			}
 			mouseOverTime = Time.time;
 		}
 	}
+
+	/*
+	protected void OnMouseEnter()
+	{
+		if (this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING)
+		{
+			BSM.PlaySound(BSM.hoverSound);
+		}
+	}
+	*/
+
 
 	// reset color on mouse exit (if alive)
 	protected override void OnMouseExit()
@@ -107,6 +135,11 @@ public class EnemyStateMachine : CharacterStateMachine {
 		// for tooltip
 		showTooltip = false;
 		mouseOverTime = 0;
+	}
+
+	public bool IsTargetable()
+	{
+		return this.alive == true && BSM.playerInput == BattleStateMachine.playerGUI.TARGETING;
 	}
 
 }
