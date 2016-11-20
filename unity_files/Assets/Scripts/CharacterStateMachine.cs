@@ -315,15 +315,19 @@ public class CharacterStateMachine : MonoBehaviour {
 
 			// adjust final damage
 			damage *= (1 - damageReduction);
+		}
 
-			Debug.Log(character.name + " takes " + damage + " of the original " + rawDamage + " (" + damageReduction * 100 + "% damage reduction)");
-		}
-		else
+		// we don't want to do this for Bleed damage, which is silent
+		if (isSilent == false)
 		{
-			Debug.Log(character.name + " takes " + damage + " points of pure damage! Ouch!");
+			damage = Mathf.Round(damage); // we only want to see integers for damage :/
+			Damage.DrawDamage(damage, this);	// draw damage amount
 		}
+		if (damage > character.curLife) damage = character.curLife;	// don't allow negative life!
+
 		character.curLife -= damage;
 		updateLife();
+
 		if (character.curLife <= 0)
 		{
 

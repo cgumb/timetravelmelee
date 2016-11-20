@@ -15,5 +15,6 @@ public class StatusEffect : MonoBehaviour
 		Debug.Log("Status Effect Awake!");
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();
 		subject = BSM.curAction.target;
+		this.transform.SetParent(subject.transform);
 	}
 }

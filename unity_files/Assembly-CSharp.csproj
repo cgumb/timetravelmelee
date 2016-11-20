@@ -63,6 +63,7 @@
      <Compile Include="Assets\Scripts\Character.cs" />
      <Compile Include="Assets\Scripts\CharacterBar.cs" />
      <Compile Include="Assets\Scripts\CharacterStateMachine.cs" />
+     <Compile Include="Assets\Scripts\Damage.cs" />
      <Compile Include="Assets\Scripts\DrawBattle.cs" />
      <Compile Include="Assets\Scripts\EnemyBar.cs" />
      <Compile Include="Assets\Scripts\EnemyStateMachine.cs" />

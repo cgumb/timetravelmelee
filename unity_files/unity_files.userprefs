@@ -1,13 +1,22 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/EnemyStateMachine.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Passives/FiringLine.cs">
     <Files>
+      <File FileName="Assets/Scripts/BattleStateMachine.cs" Line="82" Column="52" />
       <File FileName="Assets/Scripts/CharSelectArrow.cs" Line="28" Column="51" />
-      <File FileName="Assets/Scripts/DrawBattle.cs" Line="89" Column="1" />
+      <File FileName="Assets/Scripts/DrawBattle.cs" Line="1" Column="1" />
       <File FileName="Assets/Background/scroll.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/CharacterStateMachine.cs" Line="369" Column="3" />
-      <File FileName="Assets/Scripts/BattleStateMachine.cs" Line="258" Column="3" />
+      <File FileName="Assets/Scripts/CharacterStateMachine.cs" Line="253" Column="23" />
+      <File FileName="Assets/Scripts/Actions/FalseOrders.cs" Line="31" Column="14" />
       <File FileName="Assets/Scripts/EnemyStateMachine.cs" Line="123" Column="18" />
+      <File FileName="Assets/Scripts/Actions/BrutalBayoneting.cs" Line="19" Column="3" />
+      <File FileName="Assets/Scripts/ActionButton.cs" Line="18" Column="3" />
+      <File FileName="Assets/Scripts/Passives/FiringLine.cs" Line="23" Column="21" />
+      <File FileName="Assets/Scripts/Actions/BaseAction.cs" Line="25" Column="79" />
+      <File FileName="Assets/Scripts/Actions/Move.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/StatusEffects/Bleed.cs" Line="19" Column="18" />
+      <File FileName="Assets/Scripts/Character.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/StatusEffects/FalseOrdersStatusEffect.cs" Line="32" Column="31" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
