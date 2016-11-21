@@ -22,8 +22,8 @@ public class PlayVideo : MonoBehaviour {
 	void Update () {
 		if (Input.GetKeyDown (KeyCode.Space) && movie.isPlaying) 
 		{
-			Destroy (GetComponent<RawImage> ());
 			GameObject.Find("BattleManager").GetComponent<BattleStateMachine>().Load();
+			Destroy(this.transform.parent.gameObject);
 		}
 		else if (Input.GetKeyDown (KeyCode.Space) && !movie.isPlaying) 
 		{
