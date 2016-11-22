@@ -34,7 +34,12 @@ public class Character {
 	public float curEnergyProduction = 1f;
 
 	// list of actions available to character
-	public List<BaseAction> actions = new List<BaseAction>();
+	public List<BaseAction> actions;
 
-	public List<Passive> passives = new List<Passive>();
+	public List<Passive> passives;
+
+	void Awake() {
+		actions = new List<BaseAction>();
+		passives = new List<Passive>();
+	}
 }

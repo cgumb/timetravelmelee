@@ -7,14 +7,14 @@ using UnityEngine.UI;
 public class PlayMovieOnSpace : MonoBehaviour {
 
 	public MovieTexture movie;
-	private AudioSource audio;
+	private AudioSource audioSource;
 
 	void Start () {
 		GetComponent<RawImage>().texture = movie as MovieTexture;
-		audio = GetComponent<AudioSource>();
-		audio.clip = movie.audioClip;
+		audioSource = GetComponent<AudioSource>();
+		audioSource.clip = movie.audioClip;
 		movie.Play();
-		audio.Play();
+		audioSource.Play();
 
 
 	}

@@ -9,13 +9,13 @@ public class CharSelectArrow : MonoBehaviour
 {
 	public CharacterStateMachine owner;		// the character the arrow points to
 	public int pulseSpeed;
-	SpriteRenderer renderer;
+	SpriteRenderer spriteRenderer;
 
 	public void Awake()
 	{
 		this.owner = null;										// start without owner
 		this.GetComponent<SpriteRenderer>().enabled = false;	// start invisible
-		this.renderer = this.gameObject.GetComponent<SpriteRenderer>();
+		this.spriteRenderer = this.gameObject.GetComponent<SpriteRenderer>();
 		this.pulseSpeed = 8;
 
 	}
@@ -25,7 +25,7 @@ public class CharSelectArrow : MonoBehaviour
 		if (owner != null)
 		{
 			Vector2 newPos = owner.transform.position;	// find owner's position
-			newPos.y += 1.15f;							// add vertical offset
+			newPos.y += 2.45f;							// add vertical offset
 			this.transform.position = newPos;			// update position
 		}
 
@@ -36,6 +36,6 @@ public class CharSelectArrow : MonoBehaviour
 	public void Pulse()
 	{
 		float greenValue = (Mathf.Sin(Time.time * pulseSpeed) + 1f) / 2.0f;
-		renderer.color = new Color(1f, greenValue, 1f, 1f);
+		spriteRenderer.color = new Color(1f, greenValue, 1f, 1f);
 	}
 }

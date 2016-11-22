@@ -18,7 +18,6 @@ public class FalseOrders : BaseAction {
 	public override void ActionEffect()
 	{
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();
-		CharacterStateMachine agent = BSM.curAction.agent;
 		CharacterStateMachine target = BSM.curAction.target;
 		int direction = target.character.frontRow ? -1 : 1;	// negative means move left on x-axis, postive right
 		if (target.gameObject.CompareTag("Enemy"))

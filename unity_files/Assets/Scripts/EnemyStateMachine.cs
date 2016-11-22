@@ -8,6 +8,18 @@ public class EnemyStateMachine : CharacterStateMachine {
 	// this was throwing errors, added a dirty fix in CSM's TimeForAction() for now
 	//new protected float positionOffset = -3f;	// offset is different for enemies
 
+	Action myAction;
+	Color resetColor;
+
+	void Awake() {
+		myAction = new Action ();
+		resetColor = new Color (255f, 255f, 255f, 255f);
+		this.startPosition = this.transform.position;
+		this.startPosition.x -= 4.1f;
+		this.startPosition.y -= 2.28f;
+
+	}
+
 	protected override void Update ()
 	{
 		SetScale();
@@ -18,7 +30,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 			break;
 
 		case(characterState.ADDTOLIST):
-			ChooseAction ();
+			MakeChoice ();
 			curState = characterState.WAITING;
 			break;
 
@@ -52,9 +64,9 @@ public class EnemyStateMachine : CharacterStateMachine {
 
 
 	// different chooseAction for enemies; they select a random action/target
-	new void ChooseAction ()
+	void MakeChoice ()
 	{
-		Action myAction = new Action ();
+
 		myAction.type = "Enemy";
 		myAction.agent = this;
 
@@ -123,7 +135,7 @@ public class EnemyStateMachine : CharacterStateMachine {
 		if (IsAlive() == true)
 		{
 			SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
-			renderer.color = new Color (255f, 255f, 255f, 255f);
+			renderer.color = resetColor;
 		}
 		// for tooltip
 		showTooltip = false;

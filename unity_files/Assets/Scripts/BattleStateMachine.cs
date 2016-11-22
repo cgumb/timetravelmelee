@@ -21,12 +21,12 @@ public class BattleStateMachine : MonoBehaviour {
 	public DrawBattle Draw; 			// DrawBattle Object
 
 	public CharacterStateMachine[] allCSMs;
-	public List<CharacterStateMachine> characters = new List<CharacterStateMachine> ();
-	public List<CharacterStateMachine> enemies= new List<CharacterStateMachine> ();
+	public List<CharacterStateMachine> characters; 
+	public List<CharacterStateMachine> enemies; 
 
-	public List<Action> performList = new List<Action> ();
+	public List<Action> performList; 
 	public Action curAction;								// action underway
-	public List<CharacterStateMachine> charactersToManage = new List<CharacterStateMachine> ();
+	public List<CharacterStateMachine> charactersToManage; 
 
 	private float baseTimeScale = 1f;			// the rate at which time is normally moving (for cooldowns)
 	public float selectionTimeScale = 0f;		// rate of cooldown when player making a selection
@@ -37,15 +37,15 @@ public class BattleStateMachine : MonoBehaviour {
 
 	/* Energy pool display */
 	public Rect energyRect;
-	public GUIStyle style = new GUIStyle();
+	public GUIStyle style; 
 	public bool showTooltip = false;
-	Texture2D energyTexture = new Texture2D(256, 128);
+	Texture2D energyTexture;
 	protected float mouseOverTime = 0f;
 
 	/* Character Select arrow display */
 	public CharSelectArrow arrow;			// arrow prefab
 	// this is a dictionary where the key is a CharacterStateMachines and the value is the CharSelectArrow assigned to it
-	private Dictionary<CharacterStateMachine, CharSelectArrow> arrows = new Dictionary<CharacterStateMachine, CharSelectArrow> ();
+	private Dictionary<CharacterStateMachine, CharSelectArrow> arrows; 
 
 	// player's interface
 	public enum playerGUI
@@ -71,7 +71,7 @@ public class BattleStateMachine : MonoBehaviour {
 	public GameObject actionSelectPanel;	// where player selects a character
 	public Transform actionSelectSpacer;	// spacer holds each action option
 	public ActionButton actionButton;				// perfab of action button
-	private List<ActionButton> actionButtons = new List<ActionButton> ();
+	private List<ActionButton> actionButtons; 
 
 	public playerGUI playerInput;					// current state of playerGUI
 	public Action characterChoice;			// action player has selected
@@ -82,6 +82,27 @@ public class BattleStateMachine : MonoBehaviour {
 		Draw = this.gameObject.GetComponent<DrawBattle>();
 	}
 	void Awake(){
+		// Moved constructors into Awake from global scope -- unity = dumb
+		enemies = new List<CharacterStateMachine> ();
+		characters = new List<CharacterStateMachine> ();
+		charactersToManage = new List<CharacterStateMachine> ();
+		arrows = new Dictionary<CharacterStateMachine, CharSelectArrow> ();
+		style = new GUIStyle();
+		actionButtons= new List<ActionButton> ();
+		performList = new List<Action> ();
+
+		//Energy pool display
+		energyTexture = new Texture2D(256, 128);
+		energyRect = new Rect (0, 0, 128, 16);
+		for (int y = 0; y < energyTexture.height; ++y)
+		{
+			for (int x = 0; x < energyTexture.width; ++x)
+			{
+				energyTexture.SetPixel(x, y, Color.white);
+			}
+		}
+		energyTexture.Apply();
+		style.normal.background = energyTexture;
 	}
 	// Use this to generate a battle
 	public void Load ()
@@ -121,17 +142,7 @@ public class BattleStateMachine : MonoBehaviour {
 			CSM.curState = CharacterStateMachine.characterState.PHASING_IN;
 		}
 
-		//Energy pool display
-		energyRect = new Rect (0, 0, 128, 16);
-		for (int y = 0; y < energyTexture.height; ++y)
-		{
-			for (int x = 0; x < energyTexture.width; ++x)
-			{
-				energyTexture.SetPixel(x, y, Color.white);
-			}
-		}
-		energyTexture.Apply();
-		style.normal.background = energyTexture;
+
 	}
 
 	// Update is called once per frame

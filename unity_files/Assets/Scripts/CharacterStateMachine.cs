@@ -31,7 +31,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	public float maxPhase = 3f;
 	public Image lifeBar;			// visual representation of life
 	public Image phaseBar;			// visual representation of phase
-	public List<StatusEffect> statusEffects = new List<StatusEffect>();
+	public List<StatusEffect> statusEffects; 
 
 	public float backRowBonus = 3f;				// bonus to defense for being in back row
 	public float backRowPenalty = 0.5f;			// % of damage lost for being in back row
@@ -45,12 +45,17 @@ public class CharacterStateMachine : MonoBehaviour {
 	public float moveSpeed = 10f;			// how quickly you move around the battlefield (have speed affect this?)
 
 	//Tooltip Stuff
-	public GUIStyle style = new GUIStyle();
+	public GUIStyle style;
 	public bool showTooltip = false;
 	public Rect rect;
 	public string tooltip;
-	Texture2D texture = new Texture2D(256, 128);
+	Texture2D texture;
 	protected float mouseOverTime = 0f;				// used to track when mouseover occured
+
+	void Awake() {
+		statusEffects = new List<StatusEffect>();
+
+	}
 
 	// when a CharacterStateMachine is created
 	void Start ()
@@ -72,6 +77,8 @@ public class CharacterStateMachine : MonoBehaviour {
 		}
 
 		//Tooltip stuff
+		style = new GUIStyle();
+		texture = new Texture2D(256, 128);
 		rect = new Rect (0, 0, 256, 128);
 		for (int y = 0; y < texture.height; ++y)
 		{
@@ -176,11 +183,19 @@ public class CharacterStateMachine : MonoBehaviour {
 		// we'll think of something! :^)
 		switch (chosenAction.actionName)
 		{
-			case ("Basic Attack"):
+		case ("Basic Attack"):
 				//animate agent to move near target
 				// dirty fix that will need to be done a cleaner way later
-				offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
-				Vector2 targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
+			offset = this.gameObject.CompareTag ("Enemy") ? 1 : -1;
+
+				/* offset positions based on if friendly or enemy character */
+				Vector2 targetPosition;
+				if (target.character.makesEnergy == true) {
+					targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y+.75f);
+				} else {
+					targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y-1f);
+				}
+
 				while (MoveTowardTarget (targetPosition))
 				{
 					PlaySound(character.moveSound);
@@ -198,6 +213,7 @@ public class CharacterStateMachine : MonoBehaviour {
 				{
 					yield return null;
 				}
+				
 				break;
 			case ("Move"):
 				float toMove = Draw.columnOffsetX; // distance to move (i.e., distance between front and back rows)

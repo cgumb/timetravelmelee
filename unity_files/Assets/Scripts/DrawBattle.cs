@@ -87,6 +87,7 @@ public class DrawBattle : MonoBehaviour
 		character.gameObject.GetComponent<SpriteRenderer>().sortingOrder = 5 - row;
 
 		GameObject instance = Instantiate (character, position, Quaternion.identity) as GameObject;
+		Debug.Log ("instance: " + instance);
 	}
 }
 
