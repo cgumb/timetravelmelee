@@ -43,6 +43,7 @@ public class CharacterStateMachine : MonoBehaviour {
 	int offset;						// used by movements
 	Vector2 targetPosition;					// used by movements
 	public float moveSpeed = 10f;			// how quickly you move around the battlefield (have speed affect this?)
+	public float range;
 
 	//Tooltip Stuff
 	public GUIStyle style;
@@ -52,9 +53,14 @@ public class CharacterStateMachine : MonoBehaviour {
 	Texture2D texture;
 	protected float mouseOverTime = 0f;				// used to track when mouseover occured
 
-	void Awake() {
-		statusEffects = new List<StatusEffect>();
 
+	// Animator
+	protected Animator animator;
+
+
+	void Awake()
+	{
+		statusEffects = new List<StatusEffect>();
 	}
 
 	// when a CharacterStateMachine is created
@@ -64,6 +70,10 @@ public class CharacterStateMachine : MonoBehaviour {
 		startPosition = transform.position;		// set starting location on battlefield
 		BSM = GameObject.Find ("BattleManager").GetComponent<BattleStateMachine> ();	// connect to the BSM
 		Draw = GameObject.Find("BattleManager").GetComponent<DrawBattle>(); // connect to Draw Battle
+		animator = GetComponent<Animator>();	// grab animator component
+		animator.SetBool("IDLE", true);			// start out idle
+		offset = this.gameObject.CompareTag("Enemy") ? 1 : -1;
+		range *= -1 * offset;
 		SetScale();
 
 		// instantiate passives and add to status effects
@@ -183,17 +193,19 @@ public class CharacterStateMachine : MonoBehaviour {
 		// we'll think of something! :^)
 		switch (chosenAction.actionName)
 		{
-		case ("Basic Attack"):
+			case ("Basic Attack"):
 				//animate agent to move near target
 				// dirty fix that will need to be done a cleaner way later
-			offset = this.gameObject.CompareTag ("Enemy") ? 1 : -1;
+
 
 				/* offset positions based on if friendly or enemy character */
 				Vector2 targetPosition;
 				if (target.character.makesEnergy == true) {
-					targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y+.75f);
+					//targetPosition = new Vector2 (target.transform.position.x - range, target.transform.position.y+.75f);
+					targetPosition = new Vector2 (target.transform.position.x - range, target.transform.position.y);
 				} else {
-					targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y-1f);
+					//targetPosition = new Vector2 (target.transform.position.x - range, target.transform.position.y-1f);
+					targetPosition = new Vector2 (target.transform.position.x - range, target.transform.position.y);
 				}
 
 				while (MoveTowardTarget (targetPosition))
@@ -202,11 +214,15 @@ public class CharacterStateMachine : MonoBehaviour {
 					yield return null;
 				}
 				//wait
-				yield return new WaitForSeconds (0.5f);
+				animator.SetTrigger("ATTACK");
+
+				yield return new WaitForSeconds (0.3f);
 				//deal damage
 				PlayActionSound();	// play a silly sound! =D
 				DealDamage ();
 				makeEnergy ();
+				yield return new WaitForSeconds (0.6f);
+
 
 				//return to starting location
 				while (MoveTowardTarget (startPosition))
@@ -247,17 +263,20 @@ public class CharacterStateMachine : MonoBehaviour {
 				break;
 			case ("Brutal Bayoneting"):
 				//animate agent to move near target
-				offset = this.gameObject.CompareTag ("Enemy")? 1: -1;
-				targetPosition = new Vector2 (target.transform.position.x + offset, target.transform.position.y);
+				targetPosition = new Vector2 (target.transform.position.x - range, target.transform.position.y);
 				while (MoveTowardTarget (targetPosition))
 				{
 					yield return null;
 				}
 				//wait
-				yield return new WaitForSeconds (0.5f);
+				animator.SetTrigger("ATTACK");
+				yield return new WaitForSeconds (0.3f);
 				// act out action
+
 				PlayActionSound();	// play a silly sound! =D
 				chosenAction.ActionEffect();
+				yield return new WaitForSeconds (0.6f);
+
 				//return to starting location
 				while (MoveTowardTarget (startPosition))
 				{
@@ -317,6 +336,8 @@ public class CharacterStateMachine : MonoBehaviour {
 	 */
 	public void TakeDamage(float rawDamage, bool canBeDefended = true, bool isSilent = false)
 	{
+		animator.SetTrigger("WOUND");
+
 		float damage = rawDamage; 			// actual damage to be done
 		if (canBeDefended)
 		{
@@ -394,6 +415,7 @@ public class CharacterStateMachine : MonoBehaviour {
 		// change color
 		SpriteRenderer renderer = this.gameObject.GetComponent<SpriteRenderer>();
 		alive = false;
+		animator.SetTrigger("DIE");
 		renderer.color = new Color (156f, 0f, 0f, 255f);
 
 	}

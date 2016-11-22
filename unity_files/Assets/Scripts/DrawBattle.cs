@@ -12,7 +12,8 @@ public class DrawBattle : MonoBehaviour
 	// Grid Stuff
 	public static int maxRows = 4;
 	public static float bottomLeftX = -6.68f;
-	public static float bottomLeftY = -3.63f;
+	public static float bottomLeftY = -3.63f - 15; // Maybe this will fix the characters not being in the right rows?
+
 	public  Vector2 bottomLeftPosition = new Vector2(bottomLeftX, bottomLeftY); 	// player's bottom row, back line
 
 	public static float rowOffsetX = 0.3f;	// X difference between rows

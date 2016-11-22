@@ -25,7 +25,7 @@ public class CharSelectArrow : MonoBehaviour
 		if (owner != null)
 		{
 			Vector2 newPos = owner.transform.position;	// find owner's position
-			newPos.y += 2.45f;							// add vertical offset
+			newPos.y += 1.25f;							// add vertical offset
 			this.transform.position = newPos;			// update position
 		}
 
