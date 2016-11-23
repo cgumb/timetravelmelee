@@ -20,12 +20,14 @@ public class PlayVideo : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown (KeyCode.Space) && movie.isPlaying) 
+		if (Input.GetKeyDown (KeyCode.Space))
+		//if (Input.GetKeyDown (KeyCode.Space) && movie.isPlaying) 
 		{
 			GameObject.Find("BattleManager").GetComponent<BattleStateMachine>().Load();
 			Destroy(this.transform.parent.gameObject);
 		}
-		else if (Input.GetKeyDown (KeyCode.Space) && !movie.isPlaying) 
+		else if (Input.GetKeyDown (KeyCode.Space)) 
+		//else if (Input.GetKeyDown (KeyCode.Space) && !movie.isPlaying) 
 		{
 			movie.Play();
 		}
